@@ -1,0 +1,460 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Venta diaria de ejecutivos | LLYASA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;500;700&display=swap">
+<style>
+/* Layout: encabezado con pestañas, filtro de segmento, y paneles de tablero / captura / historial sobre un lienzo gris azulado */
+:root{
+  --bg:#ffffff; --surface:#ffffff; --ink:#212529; --ink2:#4a5360; --muted:#737d8a;
+  --line:#e6e9ee; --line2:#dee2e6; --soft:#f3f5f8;
+  --s1:#2a78d6; --s2:#eb6834; --s1t:rgba(42,120,214,.12); --s2t:rgba(235,104,52,.12);
+  --good:#0ca30c; --warn:#fab219; --crit:#d03b3b; --goodtxt:#006300; --crittxt:#a82727;
+  --ring:rgba(15,23,34,.10); --goodbg:rgba(12,163,12,.14); --critbg:rgba(208,59,59,.13);
+  --font:"Ubuntu",system-ui,-apple-system,"Segoe UI",sans-serif; --blue:#0652ca; --navy:#042c53; --navytxt:#7fb2f0;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0d1117; --surface:#161b23; --ink:#f2f5f9; --ink2:#b7c0cd; --muted:#8a94a3;
+  --line:#262d38; --line2:#364050; --soft:#1d2430;
+  --s1:#3987e5; --s2:#d95926; --s1t:rgba(57,135,229,.18); --s2t:rgba(217,89,38,.2);
+  --goodtxt:#35c235; --crittxt:#ef7a7a; --ring:rgba(255,255,255,.10); --goodbg:rgba(12,163,12,.22); --critbg:rgba(208,59,59,.25); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0d1117; --surface:#161b23; --ink:#f2f5f9; --ink2:#b7c0cd; --muted:#8a94a3;
+  --line:#262d38; --line2:#364050; --soft:#1d2430;
+  --s1:#3987e5; --s2:#d95926; --s1t:rgba(57,135,229,.18); --s2t:rgba(217,89,38,.2);
+  --goodtxt:#35c235; --crittxt:#ef7a7a; --ring:rgba(255,255,255,.10); --goodbg:rgba(12,163,12,.22); --critbg:rgba(208,59,59,.25); color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0}
+body{background:var(--bg);color:var(--ink);font:14px/1.45 var(--font);font-variant-numeric:tabular-nums}
+.wrap{max-width:1240px;margin:0 auto;padding-inline:16px;padding-block:0 32px}
+.sub{margin-bottom:18px}
+.banner{font-size:12px;color:var(--ink2);background:var(--soft);border:1px dashed var(--line2);border-radius:6px;padding:8px 12px;margin-bottom:16px}
+.banner b{color:var(--ink)}
+h1{font-size:30px;line-height:1.2;margin:24px 0 2px;font-weight:500}
+.sub{color:var(--muted);font-size:13px;margin-top:2px}
+.navs{display:flex;gap:6px 28px;flex-wrap:wrap}
+.tab{appearance:none;background:none;border:0;border-bottom:2px solid transparent;color:#fff;font:700 15px var(--font);padding:6px 0;cursor:pointer;white-space:nowrap}
+.tab[aria-selected=true]{border-bottom-color:#fff}
+.tab:hover{border-bottom-color:rgba(255,255,255,.6)}
+:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.site{background:var(--blue);color:#fff}
+.site .in{max-width:1240px;margin:0 auto;padding:22px 16px;display:flex;gap:16px 32px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.logo{display:block;height:46px;width:auto;max-width:100%}
+footer.f{margin-top:40px;padding-top:16px;border-top:1px solid var(--line);color:var(--ink2);font-size:14px}
+.bar{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:flex-end;margin-bottom:16px}
+.seg{--sl:22px;display:inline-flex;background:var(--navy);isolation:isolate}
+.seg button{position:relative;appearance:none;border:0;background:transparent;color:var(--navytxt);font:500 14px var(--font);padding:10px calc(var(--sl) + 14px) 10px 22px;cursor:pointer;display:flex;gap:7px;align-items:center;clip-path:polygon(0 0,100% 0,calc(100% - var(--sl)) 100%,0 100%)}
+.seg button+button{margin-left:calc(var(--sl) * -1);padding-left:calc(var(--sl) + 12px)}
+.seg button:last-child{clip-path:none;padding-right:22px}
+.seg button:nth-child(1){z-index:6}.seg button:nth-child(2){z-index:5}.seg button:nth-child(3){z-index:4}.seg button:nth-child(4){z-index:3}
+.seg button[aria-pressed=true]{background:var(--blue);color:#fff;font-weight:700}
+.seg.sm{--sl:14px}.seg.sm button{padding-top:6px;padding-bottom:6px;font-size:13px}
+.dot{width:9px;height:9px;border-radius:50%;display:inline-block;flex:none}
+.field{display:flex;flex-direction:column;gap:4px;align-items:flex-start;color:var(--ink);font-size:14px}
+select,input.num{font:400 14px var(--font);color:var(--ink);background:var(--surface);border:1px solid var(--line2);border-radius:6px;padding:7px 12px;min-height:38px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:16px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px;min-width:0}
+.kpi .l{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.kpi .v{font-size:26px;font-weight:600;letter-spacing:-.02em;margin-top:4px;line-height:1.15}
+.kpi .n{font-size:12.5px;color:var(--ink2);margin-top:4px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px;margin-bottom:16px;min-width:0}
+.panel h2{font-size:15px;margin:0 0 2px;font-weight:600}
+.panel .hint{color:var(--muted);font-size:12.5px;margin-bottom:10px}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12.5px;color:var(--ink2);margin:6px 0 4px}
+.legend span{display:inline-flex;gap:6px;align-items:center}
+.ldash{width:18px;border-top:2px dashed var(--muted);display:inline-block}
+.chartbox{position:relative}
+svg.chart{width:100%;height:auto;display:block}
+.tip{position:absolute;pointer-events:none;background:var(--surface);border:1px solid var(--line2);border-radius:8px;padding:8px 10px;font-size:12.5px;box-shadow:0 4px 14px var(--ring);min-width:170px;z-index:3}
+.tip b{display:block;margin-bottom:4px}
+.tip div{display:flex;justify-content:space-between;gap:14px;color:var(--ink2)}
+.tip div span:first-child{display:inline-flex;gap:6px;align-items:center}
+.scroll{overflow-x:auto}
+table{border-collapse:separate;border-spacing:0;width:100%;font-size:13px}
+th{font-weight:500;color:var(--muted);font-size:10.5px;text-transform:uppercase;letter-spacing:.02em;text-align:right;padding:8px 6px;border-bottom:1px solid var(--line2);white-space:nowrap;background:var(--surface)}
+td{padding:9px 5px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+td.name{font-weight:500;max-width:150px;overflow:hidden;text-overflow:ellipsis}
+tr.grp td{background:var(--soft);font-weight:600;font-size:12.5px;border-bottom:1px solid var(--line2)}
+tr.tot td{font-weight:600;border-top:1px solid var(--line2);background:var(--surface)}
+.gname{display:inline-flex;gap:8px;align-items:center}
+.pb{display:inline-flex;align-items:center;gap:8px;justify-content:flex-end}
+.pb i{display:block;width:26px;height:6px;border-radius:3px;background:var(--soft);position:relative;overflow:hidden}
+.pb i s{position:absolute;inset:0 auto 0 0;border-radius:3px}
+.pill{display:inline-flex;gap:6px;align-items:center;font-size:12px;font-weight:500;padding:2px 9px 2px 7px;border-radius:99px;border:1px solid var(--line2);color:var(--ink)}
+.pill svg{width:11px;height:11px;flex:none}
+.yn{display:inline-flex;gap:5px;align-items:center;font-weight:600;font-size:12px;padding:2px 10px 2px 8px;border-radius:99px}.yn svg{width:11px;height:11px}.yn.si{background:var(--goodbg);color:var(--goodtxt)}.yn.no{background:var(--critbg);color:var(--crittxt)}
+.neg{color:var(--crittxt)} .pos{color:var(--goodtxt)}
+.spark{display:block;margin-left:auto}
+input.cap{width:140px;text-align:right}
+input.cap.bad{border-color:var(--crit);outline-color:var(--crit)}
+.note{font-size:12.5px;color:var(--ink2);background:var(--soft);border-radius:6px;padding:8px 12px;margin-bottom:12px}
+.btn{appearance:none;border:1px solid var(--blue);background:var(--blue);color:#fff;font:500 14px var(--font);padding:8px 16px;border-radius:6px;cursor:pointer}
+.btn.ghost{background:transparent;color:var(--blue);border:1px solid var(--blue)}
+.adm{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;justify-content:space-between;background:var(--soft);border:1px solid var(--line2);border-radius:6px;padding:10px 14px;margin-bottom:16px;font-size:13.5px}
+.adm.dirty{border-color:var(--warn)}
+.hm td,.hm th{padding:6px 8px;font-size:12px}
+.hm td:first-child,.hm th:first-child{position:sticky;left:0;background:var(--surface);z-index:1;border-right:1px solid var(--line)}
+.hm td.hit{background:var(--tint)}
+.hm td.zero{color:var(--muted)}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:9px 16px;border-radius:8px;font-size:13px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:9}
+.toast.on{opacity:1}
+.cols2{display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:space-between;margin-bottom:12px}
+.top{display:grid;grid-template-columns:minmax(0,400px) minmax(0,1fr);gap:12px;margin-bottom:16px;align-items:stretch}
+.top .kpis{grid-template-columns:1fr 1fr;margin:0;gap:10px}
+.top .kpi{padding:10px 12px}.top .kpi .v{font-size:20px}.top .kpi .n{font-size:11.5px}
+.top .panel{margin:0}
+
+th.w{white-space:normal;line-height:1.15;min-width:56px;max-width:80px}
+.grip{cursor:grab;color:var(--muted);user-select:none;text-align:center;width:28px}
+tr.over td{box-shadow:inset 0 2px 0 var(--s1)}
+.btn.sm{padding:3px 9px;font-size:13px}.btn:disabled{opacity:.35;cursor:default}
+table.cfg td{padding:6px}table.cfg th:nth-child(3),table.cfg td:nth-child(3){text-align:left}
+@media (max-width:900px){.top{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:640px){.hide-s{display:none}.kpi .v{font-size:22px}}
+@media (prefers-reduced-motion:reduce){.toast{transition:none}}
+</style></head><body>
+
+<header class="site"><div class="in"><img class="logo" alt="LLYASA Llantas + Taller" src="data:image/png;base64,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"><nav class="navs" id="tabs" role="tablist" aria-label="Secciones"></nav></div></header>
+<div class="wrap">
+  <h1>Venta diaria de ejecutivos</h1>
+  <div class="sub" id="sub"></div>
+  <div class="bar"><label class="field">Mes<select id="monthsel"></select></label><div class="field">Segmento<div class="seg" id="segctl" role="group" aria-label="Segmento"></div></div></div>
+  <div id="adm"></div>
+  <main id="view"></main>
+  <footer class="f">Copyright <span id="yr"></span> Llyasa. Todos los derechos reservados.</footer>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+const EMBED={"version": 1, "updated": "2026-10-01T00:00:00.000Z", "months": {"2026-09": {"hab": 25, "costo": 3500, "nac": [{"n": "Nacionales (Karina,Carlos)", "o": 6509450, "d": [169178.47, 290340.36, 160078.93, 1183335.76, 85543.95, 134249.55, 169921.02, 132468.29, 221339.43, 91172.63, 29182.15, 85295.17, 0, 166720.41, 0, 263858.01, 47617.02, 227160.28, 67747.53, 326905.46, 120075.59, 23864.2, 84739.93, 52947.93, 78438.91, null, null, null, null, null, null]}, {"n": "Bachoco(Carmen,Liliana)", "o": 4113900, "d": [30459.38, 101138.72, 20368.86, 188916.32, 34191.89, 40284.13, 193762.41, 299490.18, 110348.99, 338618.34, 222157.08, 192888.77, 0, 141113.9, 0, 207769.06, 233087.33, 158162.73, 96079.57, 440567.07, 241496.78, 115000.7, 63783.21, 169983.19, 492765, null, null, null, null, null, null]}, {"n": "Ventas28 (Abril)", "o": 3663000, "d": [301485.12, 96572.06, 102692.07, 89755.4, 24277, 64174.28, 174313.05, 115432.63, 114232.69, 127052.64, 87493.45, 159619.93, 0, 91090.57, 0, 359713.16, 171899.39, 100398.77, 26207.12, 186681.8, 345269.01, 43272.32, 113231.53, 106278.16, 79154.06, null, null, null, null, null, null]}, {"n": "Ventas16 (Edrian)", "o": 3247600, "d": [52713.99, 180912.34, 74474.02, 297938.57, 38198.05, 145129.55, 177128.68, 179000.11, 114807.33, 99289.7, 88607.69, 96960.66, 0, 278757.88, 0, 490592.26, 402012.98, 279772.58, 374417.46, 191250.8, 261072.52, 2770.6, 239065.86, 504820.31, 191877.37, null, null, null, null, null, null]}, {"n": "Ventas27 (Daniel)", "o": 1567650, "d": [64223.5, 105490.81, 54996.4, 91375.27, 5096.8, 16936.02, 46938.93, 92686.07, 55842.91, 25383.91, 34144.63, 32780.38, 0, 38470.87, 0, 145486.71, 43904.44, 63144.39, 88041.58, 41380.15, 9137.64, 4974.48, 159156.81, 76169.12, 31187.79, null, null, null, null, null, null]}, {"n": "Ventas17 (Karla)", "o": 1533000, "d": [31164.11, 19394, 40133.79, 216360.34, 0, 39288.67, 12159.43, 95436.95, 84742.91, 121027.56, 39487.54, 77159.19, 0, 110636.63, 0, 144773.34, 20601.18, 92512.16, 129178.31, 47910.76, 46268.32, 41533.66, 14055.72, 97232.02, 34332.06, null, null, null, null, null, null]}, {"n": "Ejecutivo2 (Abigail)", "o": 485000, "d": [4911.01, 15031.21, 3973.62, 4306.58, 5766.01, 17006.9, 45054.05, 8661.92, 39664.02, 28007.58, 81511.17, 32442.11, 0, 31720.64, 0, 37972.06, 5938.82, 27559.4, 34634.48, 40046.8, 20495.2, 6604.84, 24023.29, 4928.84, 45757.71, null, null, null, null, null, null]}, {"n": "Mayoreo (Yahir)", "o": 2719249, "d": [109502.72, 57561.54, 166809.79, 110084.04, 21754.97, 95855.26, 95182.39, 99145.29, 70354.8, 79802.71, 35712.01, 137328.36, 0, 112515.01, 0, 160688.27, 97869.46, 102928.03, 46255.1, 73289.3, 84894, 50802.64, 92241.53, 52216.99, 41288.05, null, null, null, null, null, null]}, {"n": "Ventas22 (Wendy)", "o": 1004950, "d": [31866.88, 39410.9, 52617.51, 25615.79, 38256.23, 52361.94, 30161.38, 34625.68, 14581.9, 28096.01, 63547.35, 133129.04, 0, 29551.24, 0, 77859.12, 28049.6, 46957.24, 21592.9, 11790.48, 51270.86, 40251.3, 14041.77, 34038.27, 20881.84, null, null, null, null, null, null]}], "ty": [{"n": "Ejecutivo6 (Ilse)", "o": 3707358.52, "d": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null]}, {"n": "Ejecutivo7 (Gladys)", "o": 3707286, "d": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null]}, {"n": "Ejecutivo9 (Alejandra)", "o": 2931649.73, "d": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null]}, {"n": "Ventas19 (Mara)", "o": 2435389, "d": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null]}, {"n": "Ventas20 (Jose)", "o": 2134753, "d": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null]}, {"n": "Ejecutivo5 (Ale Villa)", "o": 1598810, "d": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null]}, {"n": "Ventas26 (HC)", "o": 612060, "d": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null]}, {"n": "Ventas18 (Valeria)", "o": 3378782.29, "d": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null]}, {"n": "Ventas21 (Jessica)", "o": 1734170, "d": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null]}]}, "2026-10": {"hab": 27, "costo": 3500, "nac": [{"n": "Nacionales (Karina,Carlos)", "o": 6509450, "d": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null]}, {"n": "Bachoco(Carmen,Liliana)", "o": 4113900, "d": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null]}, {"n": "Ventas28 (Abril)", "o": 3663000, "d": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null]}, {"n": "Ventas16 (Edrian)", "o": 3247600, "d": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null]}, {"n": "Ventas27 (Daniel)", "o": 1567650, "d": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null]}, {"n": "Ventas17 (Karla)", "o": 1533000, "d": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null]}, {"n": "Ejecutivo2 (Abigail)", "o": 485000, "d": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null]}, {"n": "Mayoreo (Yahir)", "o": 2719249, "d": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null]}, {"n": "Ventas22 (Wendy)", "o": 1004950, "d": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null]}], "ty": [{"n": "Ejecutivo6 (Ilse)", "o": 3707358.52, "d": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null]}, {"n": "Ejecutivo7 (Gladys)", "o": 3707286, "d": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null]}, {"n": "Ejecutivo9 (Alejandra)", "o": 2931649.73, "d": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null]}, {"n": "Ventas19 (Mara)", "o": 2435389, "d": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null]}, {"n": "Ventas20 (Jose)", "o": 2134753, "d": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null]}, {"n": "Ejecutivo5 (Ale Villa)", "o": 1598810, "d": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null]}, {"n": "Ventas26 (HC)", "o": 612060, "d": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null]}, {"n": "Ventas18 (Valeria)", "o": 3378782.29, "d": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null]}, {"n": "Ventas21 (Jessica)", "o": 1734170, "d": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null]}]}}};
+const MNAMES=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+const SEGS=[
+ {id:'nac',name:'Nacionales',c:'var(--s1)',t:'var(--s1t)',rows:[]},
+ {id:'ty',name:'TYCMORS',c:'var(--s2)',t:'var(--s2t)',rows:[]}];
+let HAB=25,COSTO=3500,MKEY='',MONTHS={},SRV=EMBED,DB=null;
+const LS='llyasa_venta_diaria_';
+const lsGet=k=>{try{return localStorage.getItem(LS+k)}catch(e){return null}};
+const lsSet=(k,v)=>{try{localStorage.setItem(LS+k,v)}catch(e){}};
+const habCalc=(y,m)=>{let n=0;const dim=new Date(y,m+1,0).getDate();for(let d=1;d<=dim;d++)if(new Date(y,m,d).getDay()!==0)n++;return n};
+const mlabel=k=>{const [y,m]=k.split('-');return MNAMES[+m-1]+' '+y};
+const pad31=a=>{while(a.length<31)a.push(null);return a};
+function newMonth(from,key){
+  const [y,m]=key.split('-').map(Number),src=MONTHS[from],cp=a=>a.map(r=>({n:r.n,o:r.o,d:pad31([])}));
+  MONTHS[key]={hab:habCalc(y,m-1),costo:src.costo,nac:cp(src.nac),ty:cp(src.ty)};
+}
+const nextKey=k=>{let [y,m]=k.split('-').map(Number);m++;if(m>12){m=1;y++}return y+'-'+String(m).padStart(2,'0')};
+const lastDay=()=>{let m=0;SEGS.forEach(s=>s.rows.forEach(r=>r.d.forEach((v,i)=>{if(v!==null&&i+1>m)m=i+1})));return m};
+const st={seg:'all',tab:'tablero',cut:0,capSeg:'nac',capDay:1,hist:'dia',cm:'dia',admin:false,sort:'manual',dirty:false,h:undefined};
+function pickDB(){
+  let draft=null;try{draft=JSON.parse(lsGet('draft')||'null')}catch(e){}
+  if(st.admin){const base=(draft&&draft.months&&draft.updated>SRV.updated)?draft:SRV;st.dirty=base!==SRV&&base.updated!==lsGet('pub');DB=JSON.parse(JSON.stringify(base))}
+  else{DB=SRV;st.dirty=false}
+  MONTHS=DB.months;st.h=JSON.stringify(DB.months);
+}
+function touch(){DB.updated=new Date().toISOString();lsSet('draft',JSON.stringify(DB));st.dirty=true}
+function setMonth(k){
+  MKEY=k;const M=MONTHS[k];HAB=M.hab;COSTO=M.costo;SEGS[0].rows=M.nac;SEGS[1].rows=M.ty;
+  st.cut=lastDay();st.capDay=Math.min(HAB,st.cut||1);
+}
+function startMonth(){const ks=Object.keys(MONTHS).sort(),n=new Date(),nk=n.getFullYear()+'-'+String(n.getMonth()+1).padStart(2,'0');return MONTHS[nk]?nk:ks[ks.length-1]}
+function download(){const b=new Blob([JSON.stringify(DB)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='datos.json';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1500);toast('datos.json descargado. Súbelo a Netlify para publicar.')}
+let PUBLISHING=false;
+const ghCfg=()=>{try{const c=JSON.parse(lsGet('gh')||'null');return c&&c.o&&c.r&&c.t?c:null}catch(e){return null}};
+const b64=x=>btoa(unescape(encodeURIComponent(x)));
+const ghErr=m=>m==='401'?'El token no es válido o ya venció.':(m==='403'||m==='404')?'Revisa usuario, repositorio y permisos del token.':(m==='409'||m==='422')?'Intenta de nuevo.':'Revisa tu conexión.';
+async function publish(){
+  const c=ghCfg();if(!c){toast('Primero configura GitHub en la pestaña Configuración.');return}
+  if(PUBLISHING)return;PUBLISHING=true;st.msg='Publicando…';paintAdm();
+  const url=`https://api.github.com/repos/${c.o}/${c.r}/contents/datos.json`,H={'Authorization':'Bearer '+c.t,'Accept':'application/vnd.github+json'},br=c.b||'main';
+  try{
+    let sha;const g=await fetch(url+'?ref='+encodeURIComponent(br),{headers:H});
+    if(g.ok)sha=(await g.json()).sha;else if(g.status!==404)throw new Error(g.status);
+    const body={message:'Venta diaria '+DB.updated.slice(0,16),content:b64(JSON.stringify(DB)),branch:br};if(sha)body.sha=sha;
+    const p=await fetch(url,{method:'PUT',headers:{...H,'Content-Type':'application/json'},body:JSON.stringify(body)});
+    if(!p.ok)throw new Error(p.status);
+    lsSet('pub',DB.updated);st.dirty=false;st.msg='Publicado. Tarda cerca de un minuto en verse para todos.';
+  }catch(e){st.msg='No se pudo publicar ('+e.message+'). '+ghErr(String(e.message))}
+  PUBLISHING=false;toast(st.msg);render()
+}
+async function ghSave(){
+  const v=id=>document.getElementById(id).value.trim(),c={o:v('gh_o'),r:v('gh_r'),b:v('gh_b')||'main',t:v('gh_t')};
+  if(!c.o||!c.r||!c.t){toast('Llena usuario, repositorio y token.');return}
+  try{const r=await fetch(`https://api.github.com/repos/${c.o}/${c.r}`,{headers:{'Authorization':'Bearer '+c.t,'Accept':'application/vnd.github+json'}});
+    if(!r.ok)throw new Error(r.status);const j=await r.json();
+    if(!(j.permissions&&j.permissions.push)){toast('El token no tiene permiso de escritura en ese repositorio.');return}
+    lsSet('gh',JSON.stringify(c));st.msg='';toast('Conexión correcta. Ya puedes publicar.');render()
+  }catch(e){toast('No se pudo conectar ('+e.message+'). '+ghErr(String(e.message)))}
+}
+const $=s=>document.querySelector(s);
+const money=n=>n=>'$'+Math.round(n).toLocaleString('es-MX');
+const mm=n=>'$'+(n/1e6).toLocaleString('es-MX',{minimumFractionDigits:2,maximumFractionDigits:2})+' M';
+const pc=(n,d=0)=>!isFinite(n)?'—':(n*100).toLocaleString('es-MX',{minimumFractionDigits:d,maximumFractionDigits:d})+'%';
+const sgn=n=>(n<0?'−':'+')+money(Math.abs(n));
+const sumTo=(r,n)=>r.d.slice(0,n).reduce((a,b)=>a+(b||0),0);
+function calc(r,cut){
+  const od=r.o/HAB, acum=sumTo(r,cut), oa=od*cut, last=r.d[cut-1]||0;
+  return {od,acum,oa,last,pl:od?last/od:0,dif:acum-oa,ritmo:oa?acum/oa:0,avg:cut?acum/cut:0,pm:r.o?acum/r.o:0}
+}
+const stat=x=>x>=1?['En ritmo','ok']:x>=.8?['Cerca','mid']:['Rezagado','bad'];
+const ICON={ok:'<svg viewBox="0 0 12 12"><path d="M2 6.5l2.6 2.6L10 3.4" fill="none" stroke="var(--good)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+ mid:'<svg viewBox="0 0 12 12"><circle cx="6" cy="6" r="4.5" fill="none" stroke="var(--warn)" stroke-width="2"/></svg>',
+ bad:'<svg viewBox="0 0 12 12"><path d="M6 10.5L1.5 2.5h9z" fill="var(--crit)"/></svg>'};
+const YN=ok=>ok?'<span class="yn si"><svg viewBox="0 0 12 12"><path d="M2 6.5l2.6 2.6L10 3.4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>SÍ</span>':'<span class="yn no"><svg viewBox="0 0 12 12"><path d="M3 3l6 6M9 3l-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>NO</span>';
+const pill=x=>{const [t,k]=stat(x);return `<span class="pill">${ICON[k]}${t}</span>`};
+const visSegs=()=>SEGS.filter(s=>st.seg==='all'||s.id===st.seg);
+const hasData=s=>s.rows.some(r=>r.d.some(v=>v!==null));
+const dataSegs=()=>visSegs().filter(hasData);
+function segTotals(s,cut){
+  const a=s.rows.map(r=>calc(r,cut));
+  const o=s.rows.reduce((x,r)=>x+r.o,0), acum=a.reduce((x,y)=>x+y.acum,0), oa=a.reduce((x,y)=>x+y.oa,0);
+  const last=a.reduce((x,y)=>x+y.last,0), od=o/HAB;
+  return {o,od,acum,oa,last,pl:od?last/od:0,dif:acum-oa,ritmo:oa?acum/oa:0,avg:cut?acum/cut:0,pm:o?acum/o:0,n:a.filter(x=>x.ritmo>=1).length,tot:a.length}
+}
+/* ---------- Encabezado ---------- */
+function head(){
+  $('#sub').textContent=`${mlabel(MKEY)} · ${HAB} días hábiles (lun–sáb)`+(st.cut?` · corte al día hábil ${st.cut}`:' · sin ventas capturadas');
+  $('#monthsel').innerHTML=Object.keys(MONTHS).sort().map(k=>`<option value="${k}" ${k===MKEY?'selected':''}>${mlabel(k)}</option>`).join('');
+  $('#segctl').innerHTML=[['all','Todos',null],...SEGS.map(s=>[s.id,s.name,s.c])].map(([id,n,c])=>
+    `<button data-seg="${id}" aria-pressed="${st.seg===id}">${c?`<span class="dot" style="background:${c}"></span>`:''}${n}</button>`).join('');
+  $('#tabs').innerHTML=[['tablero','Tablero'],...(st.admin?[['captura','Captura del día'],['historial','Historial'],['config','Configuración']]:[])].map(([id,n])=>
+    `<button class="tab" role="tab" data-tab="${id}" aria-selected="${st.tab===id}">${n}</button>`).join('');
+}
+
+/* ---------- Tablero ---------- */
+function kpis(){
+  const T=dataSegs().map(s=>segTotals(s,st.cut));
+  const o=T.reduce((a,b)=>a+b.o,0),acum=T.reduce((a,b)=>a+b.acum,0),oa=T.reduce((a,b)=>a+b.oa,0),last=T.reduce((a,b)=>a+b.last,0),od=o/HAB;
+  const n=T.reduce((a,b)=>a+b.n,0),tot=T.reduce((a,b)=>a+b.tot,0);
+  const dif=acum-oa;
+  return `<div class="kpis">
+   <div class="kpi"><div class="l">Venta acumulada</div><div class="v">${mm(acum)}</div><div class="n">de ${mm(o)} · ${pc(acum/o,1)} del objetivo</div></div>
+   <div class="kpi"><div class="l">Contra el ritmo</div><div class="v ${dif<0?'neg':'pos'}">${dif<0?'−':'+'}${mm(Math.abs(dif))}</div><div class="n">objetivo a hoy ${mm(oa)} · cumplimiento ${pc(acum/oa,1)}</div></div>
+   <div class="kpi"><div class="l">Venta del día ${st.cut}</div><div class="v">${mm(last)}</div><div class="n">${pc(last/od,0)} del objetivo diario (${mm(od)})</div></div>
+   <div class="kpi"><div class="l">Ejecutivos en ritmo</div><div class="v">${n} de ${tot}</div><div class="n">acumulado ≥ objetivo a hoy</div></div></div>`
+}
+function seriesPct(s,cut){const o=s.rows.reduce((x,r)=>x+r.o,0);let a=0;const out=[0];
+  for(let i=0;i<cut;i++){a+=s.rows.reduce((x,r)=>x+(r.d[i]||0),0);out.push(a/o)}return out}
+function chart(){
+  const vs=dataSegs(),cut=st.cut,cm=st.cm,W=760,H=170,m={l:50,r:cm==='acum'?150:10,t:10,b:24},iw=W-m.l-m.r,ih=H-m.t-m.b;
+  const X=d=>m.l+d/HAB*iw;let g='',ymax,Y,leg='',ticks=[];
+  const odTot=vs.reduce((a,s)=>a+s.rows.reduce((x,r)=>x+r.o,0),0)/HAB;
+  if(cm==='dia'){
+    const tot=[];for(let d=1;d<=cut;d++)tot.push(vs.reduce((a,s)=>a+s.rows.reduce((x,r)=>x+(r.d[d-1]||0),0),0));
+    const mx=Math.max(odTot,...tot)*1.08,step=[1e5,2e5,25e4,5e5,1e6,2e6].find(s=>mx/s<=5)||2e6;
+    ymax=Math.ceil(mx/step)*step;Y=v=>m.t+ih-(v/ymax)*ih;
+    for(let v=0;v<=ymax+1;v+=step)g+=`<line x1="${m.l}" x2="${m.l+iw}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--line)"/><text x="${m.l-8}" y="${Y(v)+4}" text-anchor="end" font-size="11" fill="var(--muted)">${v>=1e6?'$'+(v/1e6)+' M':'$'+(v/1e3)+'k'}</text>`;
+    for(let d=5;d<=HAB;d+=5)g+=`<text x="${X(d-.5)}" y="${H-7}" text-anchor="middle" font-size="11" fill="var(--muted)">${d}</text>`;
+    const bw=iw/HAB;
+    for(let d=1;d<=cut;d++){let acc=0;vs.forEach(s=>{const v=s.rows.reduce((x,r)=>x+(r.d[d-1]||0),0);if(v<=0)return;
+      const y0=Y(acc),y1=Y(acc+v);acc+=v;g+=`<rect x="${X(d-1)+bw*.15}" y="${y1}" width="${bw*.7}" height="${Math.max(0,y0-y1)}" rx="2" fill="${s.c}" stroke="var(--surface)" stroke-width="1"/>`})}
+    g+=`<line x1="${m.l}" x2="${m.l+iw}" y1="${Y(odTot)}" y2="${Y(odTot)}" stroke="var(--ink)" stroke-width="1.5" stroke-dasharray="5 4"/>`;
+    leg=vs.map(s=>`<span><i class="dot" style="background:${s.c}"></i>${s.name}</span>`).join('')+`<span><i class="ldash" style="border-color:var(--ink)"></i>Objetivo diario ${mm(odTot)}</span>`;
+  }else{
+    const ser=vs.map(s=>({s,p:seriesPct(s,cut)}));
+    ymax=Math.max(1,...ser.flatMap(x=>x.p));ymax=Math.ceil(ymax*4)/4;Y=v=>m.t+ih-(v/ymax)*ih;
+    for(let v=0;v<=ymax+1e-9;v+=.25)g+=`<line x1="${m.l}" x2="${m.l+iw}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--line)"/><text x="${m.l-8}" y="${Y(v)+4}" text-anchor="end" font-size="11" fill="var(--muted)">${pc(v)}</text>`;
+    for(let d=5;d<=HAB;d+=5)g+=`<text x="${X(d)}" y="${H-7}" text-anchor="middle" font-size="11" fill="var(--muted)">${d}</text>`;
+    g+=`<line x1="${X(0)}" y1="${Y(0)}" x2="${X(HAB)}" y2="${Y(1)}" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="5 4"/>`;
+    const ends=[];
+    ser.forEach(({s,p})=>{g+=`<polyline fill="none" stroke="${s.c}" stroke-width="2" stroke-linejoin="round" points="${p.map((v,i)=>X(i)+','+Y(v)).join(' ')}"/><circle cx="${X(cut)}" cy="${Y(p[cut])}" r="4" fill="${s.c}" stroke="var(--surface)" stroke-width="2"/>`;ends.push({s,y:Y(p[cut]),v:p[cut]})});
+    ends.sort((a,b)=>a.y-b.y);for(let i=1;i<ends.length;i++)if(ends[i].y-ends[i-1].y<14)ends[i].y=ends[i-1].y+14;
+    ends.forEach(e=>g+=`<text x="${X(cut)+9}" y="${e.y+4}" font-size="12" font-weight="600" fill="var(--ink)">${e.s.name} ${pc(e.v)}</text>`);
+    leg=vs.map(s=>`<span><i class="dot" style="background:${s.c}"></i>${s.name}</span>`).join('')+`<span><i class="ldash"></i>Ruta ideal</span>`;
+  }
+  g+=`<line id="xh" x1="0" x2="0" y1="${m.t}" y2="${m.t+ih}" stroke="var(--ink2)" visibility="hidden"/><rect id="hit" x="${m.l}" y="${m.t}" width="${iw}" height="${ih}" fill="transparent"/>`;
+  const tg=`<div class="seg sm" role="group" aria-label="Base de la gráfica">${[['dia','Venta por día'],['acum','Avance acumulado']].map(([id,n])=>`<button data-cm="${id}" aria-pressed="${cm===id}">${n}</button>`).join('')}</div>`;
+  return `<div class="panel chartp"><div class="cols2" style="margin-bottom:4px"><h2>${cm==='dia'?'Venta por día contra objetivo diario':'Avance acumulado contra el objetivo del mes'}</h2>${tg}</div>
+  <div class="legend">${leg}</div><div class="chartbox" id="cb"><svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Gráfica de venta">${g}</svg><div class="tip" id="tip" hidden></div></div></div>`
+}
+function bindChart(){
+  const hit=$('#hit');if(!hit)return;const svg=hit.ownerSVGElement,cb=$('#cb'),tip=$('#tip'),xh=$('#xh');
+  const vs=dataSegs(),cut=st.cut,cm=st.cm,W=760,m={l:50,r:cm==='acum'?150:10},iw=W-m.l-m.r;
+  const odTot=vs.reduce((a,s)=>a+s.rows.reduce((x,r)=>x+r.o,0),0)/HAB;
+  const ser=vs.map(s=>({s,p:seriesPct(s,cut)}));
+  hit.addEventListener('mousemove',e=>{
+    const b=svg.getBoundingClientRect(),k=W/b.width,vx=(e.clientX-b.left)*k;
+    let d=cm==='dia'?Math.floor((vx-m.l)/(iw/HAB))+1:Math.round((vx-m.l)/iw*HAB);d=Math.max(1,Math.min(cut,d));
+    const cx=cm==='dia'?m.l+(d-.5)*iw/HAB:m.l+d/HAB*iw;
+    xh.setAttribute('x1',cx);xh.setAttribute('x2',cx);xh.setAttribute('visibility','visible');tip.hidden=false;
+    if(cm==='dia'){let T=0;const rows=vs.map(s=>{const v=s.rows.reduce((x,r)=>x+(r.d[d-1]||0),0);T+=v;return `<div><span><i class="dot" style="background:${s.c}"></i>${s.name}</span><span>${money(v)}</span></div>`}).join('');
+      tip.innerHTML=`<b>Día ${d}</b>${rows}<div><span>Total</span><span><b style="display:inline">${money(T)}</b></span></div><div><span>Objetivo diario</span><span>${money(odTot)} · ${pc(T/odTot)}</span></div>`}
+    else tip.innerHTML=`<b>Día ${d}</b>`+ser.map(({s,p})=>{const o=s.rows.reduce((a,r)=>a+r.o,0);return `<div><span><i class="dot" style="background:${s.c}"></i>${s.name}</span><span>${pc(p[d],1)} · ${mm(p[d]*o)}</span></div>`}).join('')+`<div><span><i class="ldash"></i>Ruta ideal</span><span>${pc(d/HAB,1)}</span></div>`;
+    const x=cx/k,tw=tip.offsetWidth;let left=x+14;if(left+tw>cb.clientWidth)left=x-tw-14;tip.style.left=Math.max(0,left)+'px';tip.style.top='6px';
+  });
+  hit.addEventListener('mouseleave',()=>{tip.hidden=true;xh.setAttribute('visibility','hidden')});
+}
+function execTable(){
+  const rem=HAB-st.cut;
+  return visSegs().map((s,k)=>{
+    if(!hasData(s))return `<div class="panel"><h2><span class="gname"><i class="dot" style="background:${s.c}"></i>${s.name}</span></h2><div class="hint" style="margin:0">Sin ventas capturadas en ${mlabel(MKEY)}.</div></div>`;
+    const T=segTotals(s,st.cut),ty=s.id==='ty';
+    let list=s.rows.map(r=>({r,c:calc(r,st.cut)}));
+    if(st.sort==='ritmo')list.sort((a,b)=>b.c.ritmo-a.c.ritmo);
+    const need=c=>rem>0?Math.max(0,(c.od*HAB-c.acum)/rem)/COSTO:0;
+    let body=list.map(({r,c})=>`<tr><td class="name" title="${r.n}">${r.n}</td><td>${money(r.o)}</td><td>${money(c.last)}</td>
+      <td>${pc(c.pl)}</td><td>${YN(c.last>=c.od-0.005)}</td><td>${money(c.acum)}</td>
+      <td><span class="pb">${pc(c.pm)}<i><s style="width:${Math.min(c.pm,1)*100}%;background:${s.c}"></s></i></span></td>
+      <td class="${c.dif<0?'neg':'pos'}">${sgn(c.dif)}</td><td>${money(c.avg)}</td>${ty?`<td>${rem>0?Math.ceil(need(c)).toLocaleString('es-MX'):'—'}</td><td>${Math.round(c.avg/COSTO).toLocaleString('es-MX')}</td>`:''}<td>${pill(c.ritmo)}</td></tr>`).join('');
+    const tn=list.reduce((a,x)=>a+need(x.c),0);
+    body+=`<tr class="tot"><td>Total ${s.name}</td><td>${money(T.o)}</td><td>${money(T.last)}</td><td>${pc(T.pl)}</td><td>${YN(T.last>=T.od)}</td><td>${money(T.acum)}</td>
+     <td><span class="pb">${pc(T.pm)}<i><s style="width:${Math.min(T.pm,1)*100}%;background:${s.c}"></s></i></span></td><td class="${T.dif<0?'neg':'pos'}">${sgn(T.dif)}</td><td>${money(T.avg)}</td>${ty?`<td>${rem>0?Math.ceil(tn).toLocaleString('es-MX'):'—'}</td><td>${Math.round(T.avg/COSTO).toLocaleString('es-MX')}</td>`:''}<td>${pill(T.ritmo)}</td></tr>`;
+    const hint=k===0?`Cumple hoy compara la venta del día ${st.cut} con el objetivo diario. Ritmo del mes compara el acumulado con lo que debería llevar a la fecha: en ritmo ≥100%, cerca ≥80%, rezagado por debajo.`:'';
+    const lh=ty?`<th class="w" title="Lo que falta del objetivo ÷ días hábiles restantes ÷ costo promedio de llanta">Llantas/día necesarias</th><th class="w" title="Promedio diario vendido ÷ costo promedio de llanta">Llantas/día vendidas</th>`:'';
+    return `<div class="panel"><h2><span class="gname"><i class="dot" style="background:${s.c}"></i>${s.name}</span></h2>
+    <div class="hint">${hint}${ty?` Llantas calculadas con costo promedio de ${money(COSTO)} (editable en Configuración).`:''}</div>
+    <div class="scroll"><table><thead><tr><th>Ejecutivo</th><th>Obj. mensual</th><th>Venta día ${st.cut}</th><th>% obj. diario</th><th>Cumple hoy</th><th>Acumulado</th><th>% avance mes</th><th>Dif. vs ritmo</th><th>Prom. diario</th>${lh}<th>Ritmo del mes</th></tr></thead><tbody>${body}</tbody></table></div></div>`}).join('')
+}
+function tablero(){
+  const ld=lastDay();
+  if(!ld||!dataSegs().length)return `<div class="panel"><h2>Todavía no hay ventas en ${mlabel(MKEY)}</h2><div class="hint" style="margin:0">${st.admin?'Abre Captura del día y registra el acumulado del día hábil 1.':'La venta del mes aparecerá aquí en cuanto se capture el primer día.'}</div></div>`;
+  return `<div class="bar"><label class="field">Corte al día hábil <select id="cut">${Array.from({length:ld},(_,i)=>`<option value="${i+1}" ${i+1===st.cut?'selected':''}>${i+1}</option>`).join('')}</select></label>
+  <div class="field">Orden <div class="seg sm" role="group" aria-label="Orden de ejecutivos">${[['manual','Manual'],['ritmo','Por ritmo']].map(([id,n])=>`<button data-sort="${id}" aria-pressed="${st.sort===id}">${n}</button>`).join('')}</div></div></div>`+`<div class="top">${kpis()}${chart()}</div>`+execTable();
+}
+
+/* ---------- Captura ---------- */
+function captura(){
+  const s=SEGS.find(x=>x.id===st.capSeg),day=st.capDay;
+  const rows=s.rows.map((r,i)=>{
+    const prev=sumTo(r,day-1),v=r.d[day-1],od=r.o/HAB;
+    return `<tr data-i="${i}" data-prev="${prev}"><td class="name">${r.n}</td><td>${money(od)}</td><td>${money(prev)}</td>
+    <td><input class="num cap" id="cap${i}" inputmode="decimal" value="${v===null?'':Math.round((prev+v)*100)/100}" placeholder="Acumulado CRM" aria-label="Acumulado CRM ${r.n}"></td>
+    <td class="vd">—</td><td class="pd">—</td><td class="sd"></td></tr>`}).join('');
+  return `<div class="bar"><div class="seg" role="group" aria-label="Segmento a capturar">${SEGS.map(x=>`<button data-capseg="${x.id}" aria-pressed="${x.id===st.capSeg}"><span class="dot" style="background:${x.c}"></span>${x.name}</button>`).join('')}</div>
+   <label class="field">Día hábil <select id="capday">${Array.from({length:HAB},(_,i)=>`<option value="${i+1}" ${i+1===day?'selected':''}>Día hábil ${i+1}</option>`).join('')}</select></label></div>
+   <div class="note">Captura el <b>acumulado del mes</b> que te da el CRM. La venta del día se calcula sola restando el acumulado del día anterior. Los números del día ${day} ya están cargados para que veas la resta.</div>
+   <div class="panel"><div class="scroll"><table><thead><tr><th>Ejecutivo</th><th>Obj. diario</th><th>Acumulado día ${day-1}</th><th>Acumulado CRM día ${day}</th><th>Venta del día</th><th>% obj. diario</th><th>Revisión</th></tr></thead><tbody>${rows}
+   <tr class="tot"><td>Total ${s.name}</td><td id="tod"></td><td id="tprev"></td><td id="tacum"></td><td id="tvd"></td><td id="tpd"></td><td></td></tr></tbody></table></div>
+   <div class="cols2" style="margin:14px 0 0"><span class="hint" id="capmsg" style="margin:0"></span><div style="display:flex;gap:8px"><button class="btn ghost" id="capclr">Limpiar día</button><button class="btn" id="capsave">Guardar día ${day}</button></div></div></div>`
+}
+function capRecalc(){
+  const s=SEGS.find(x=>x.id===st.capSeg);let tp=0,ta=0,tv=0,tod=0,bad=0,pre=0;
+  document.querySelectorAll('#view tr[data-i]').forEach(tr=>{
+    const i=+tr.dataset.i,prev=+tr.dataset.prev,od=s.rows[i].o/HAB,inp=tr.querySelector('input'),raw=inp.value.trim().replace(/,/g,'');
+    tp+=prev;tod+=od;pre+=0;
+    const sd=tr.querySelector('.sd');
+    if(raw===''){tr.querySelector('.vd').textContent='—';tr.querySelector('.pd').textContent='—';sd.textContent='Sin capturar';inp.classList.remove('bad');return}
+    const a=parseFloat(raw);
+    if(isNaN(a)){inp.classList.add('bad');sd.innerHTML='<span class="neg">No es un número</span>';bad++;return}
+    const v=a-prev;ta+=a;
+    tr.querySelector('.vd').textContent=money(v);tr.querySelector('.pd').textContent=pc(v/od);
+    if(v<0){inp.classList.add('bad');sd.innerHTML='<span class="neg">Menor al día anterior</span>';bad++}
+    else{inp.classList.remove('bad');sd.innerHTML=v===0?'Sin venta':'<span class="pos">Listo</span>';tv+=v}
+  });
+  $('#tod').textContent=money(tod);$('#tprev').textContent=money(tp);$('#tacum').textContent=money(ta);$('#tvd').textContent=money(tv);$('#tpd').textContent=pc(tod?tv/tod:0);
+  $('#capmsg').textContent=bad?`${bad} fila(s) por corregir antes de guardar.`:'Todo en orden para guardar.';
+  $('#capsave').disabled=!!bad;$('#capsave').style.opacity=bad?.45:1;
+}
+function capSave(){
+  const s=SEGS.find(x=>x.id===st.capSeg),day=st.capDay;
+  document.querySelectorAll('#view tr[data-i]').forEach(tr=>{
+    const i=+tr.dataset.i,raw=tr.querySelector('input').value.trim().replace(/,/g,'');
+    s.rows[i].d[day-1]=raw===''?null:Math.max(0,parseFloat(raw)-(+tr.dataset.prev));
+  });
+  const ld=lastDay();if(day>=st.cut&&day<=ld)st.cut=Math.max(st.cut,day);
+  toast(`Día ${day} de ${s.name} guardado en este equipo.`);
+}
+
+/* ---------- Historial ---------- */
+function historial(){
+  const ld=lastDay();if(!ld)return `<div class="panel"><div class="hint" style="margin:0">Sin ventas capturadas en ${mlabel(MKEY)}.</div></div>`;const cols=Array.from({length:ld},(_,i)=>i+1);
+  const f=n=>n>=1e6?(n/1e6).toFixed(2)+'M':n>=1e3?(n/1e3).toFixed(0)+'k':Math.round(n)+'';
+  let body='';
+  visSegs().forEach(s=>{
+    body+=`<tr class="grp"><td colspan="${ld+2}"><span class="gname"><i class="dot" style="background:${s.c}"></i>${s.name}</span></td></tr>`;
+    s.rows.forEach(r=>{const od=r.o/HAB;let a=0;
+      body+=`<tr><td class="name" title="${r.n}">${r.n}</td>`+cols.map(d=>{const v=r.d[d-1]||0;a+=v;
+        if(st.hist==='acum')return `<td>${f(a)}</td>`;
+        return `<td class="${v>=od?'hit':v===0?'zero':''}" style="--tint:${s.t}" title="Día ${d}: ${money(v)}">${v?f(v):'–'}</td>`}).join('')+`<td><b>${f(a)}</b></td></tr>`});
+    body+=`<tr class="tot"><td>Total ${s.name}</td>`+(()=>{let a=0;return cols.map(d=>{const v=s.rows.reduce((x,r)=>x+(r.d[d-1]||0),0);a+=v;return `<td>${f(st.hist==='acum'?a:v)}</td>`}).join('')+`<td>${f(a)}</td>`})()+`</tr>`;
+  });
+  return `<div class="bar"><div class="seg" role="group" aria-label="Vista">${[['dia','Venta del día'],['acum','Acumulado']].map(([id,n])=>`<button data-hist="${id}" aria-pressed="${st.hist===id}">${n}</button>`).join('')}</div>
+  <span class="hint" style="margin:0">${st.hist==='dia'?'Las celdas con color alcanzaron el objetivo diario del ejecutivo.':'Acumulado del mes por ejecutivo, día por día.'}</span></div>
+  <div class="panel"><div class="scroll"><table class="hm"><thead><tr><th>Ejecutivo</th>${cols.map(d=>`<th>D${String(d).padStart(2,'0')}</th>`).join('')}<th>Total</th></tr></thead><tbody>${body}</tbody></table></div></div>`
+}
+
+/* ---------- Configuración ---------- */
+function config(){
+  const [y,mo]=MKEY.split('-').map(Number),calcd=habCalc(y,mo-1),nk=nextKey(Object.keys(MONTHS).sort().pop());
+  const mp=`<div class="panel"><h2>Mes de ${mlabel(MKEY)}</h2><div class="hint">El objetivo diario es el objetivo mensual entre los días hábiles. Calculado de lunes a sábado: <b>${calcd}</b>. Resta los feriados que no se trabajen.</div>
+   <div class="bar" style="margin:0"><label class="field">Días hábiles <input class="num" id="hab" type="number" min="1" max="31" value="${HAB}" style="width:80px"></label>
+   <button class="btn ghost" id="habcalc">Usar calculado (${calcd})</button>
+   <label class="field">Costo promedio llanta de camión <input class="num" id="costo" inputmode="decimal" value="${COSTO}" style="width:100px"></label>
+   <span style="flex:1"></span><button class="btn" id="newmonth" ${MONTHS[nk]?'disabled style="opacity:.45"':''}>Crear ${mlabel(nk)}</button></div></div>`;
+  const sp=SEGS.map(s=>{
+    const tot=s.rows.reduce((a,r)=>a+r.o,0);
+    const rows=s.rows.map((r,i)=>`<tr data-seg="${s.id}" data-i="${i}"><td class="grip" draggable="true" title="Arrastra para mover" aria-hidden="true">⋮⋮</td><td>${i+1}</td>
+      <td><input class="num nm" value="${r.n.replace(/"/g,'&quot;')}" aria-label="Nombre" style="width:230px"></td>
+      <td><input class="num ob" inputmode="decimal" value="${r.o}" aria-label="Objetivo mensual de ${r.n}" style="width:130px;text-align:right"></td><td>${money(r.o/HAB)}</td>
+      <td class="mvc"><button class="btn ghost sm" data-mv="${s.id}:${i}:-1" aria-label="Subir ${r.n}" ${i===0?'disabled':''}>↑</button> <button class="btn ghost sm" data-mv="${s.id}:${i}:1" aria-label="Bajar ${r.n}" ${i===s.rows.length-1?'disabled':''}>↓</button></td></tr>`).join('');
+    return `<div class="panel"><h2><span class="gname"><i class="dot" style="background:${s.c}"></i>${s.name}</span></h2><div class="hint">Arrastra el asa ⋮⋮ o usa las flechas para ordenar. Este orden se usa en el tablero, la captura y el historial.</div>
+     <div class="scroll"><table class="cfg"><thead><tr><th></th><th>#</th><th>Ejecutivo</th><th>Objetivo mensual</th><th>Objetivo diario</th><th>Mover</th></tr></thead><tbody>${rows}
+     <tr class="tot"><td></td><td></td><td>Total ${s.name}</td><td>${money(tot)}</td><td>${money(tot/HAB)}</td><td></td></tr></tbody></table></div></div>`}).join('');
+  const g=ghCfg()||{};
+  const gh=`<div class="panel"><h2>Publicación en GitHub</h2><div class="hint">Con esto, Guardar día publica solo, sin descargar ni subir archivos. El token se guarda únicamente en este navegador.</div>
+   <div class="bar" style="margin:0"><label class="field">Usuario<input class="num" id="gh_o" value="${g.o||''}" style="width:170px" autocomplete="off"></label>
+   <label class="field">Repositorio<input class="num" id="gh_r" value="${g.r||''}" style="width:170px" autocomplete="off"></label>
+   <label class="field">Rama<input class="num" id="gh_b" value="${g.b||'main'}" style="width:90px" autocomplete="off"></label>
+   <label class="field">Token<input class="num" id="gh_t" type="password" value="${g.t||''}" style="width:220px" autocomplete="off"></label>
+   <button class="btn" id="ghsave">Guardar y probar</button></div></div>`;
+  return mp+sp+gh
+}
+
+function toast(t){const e=$('#toast');e.textContent=t;e.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove('on'),2600)}
+function paintAdm(){
+  const c=ghCfg();
+  $('#adm').innerHTML=st.admin?`<div class="adm ${st.dirty?'dirty':''}"><span><b>Modo captura.</b> ${c?(st.dirty?'Hay cambios sin publicar.':'Todo publicado.'):'Publicación en GitHub sin configurar (pestaña Configuración).'} ${st.msg||''}</span><span style="display:flex;gap:8px;flex-wrap:wrap">${c?'<button class="btn" id="pub">Publicar ahora</button>':''}<button class="btn ghost" id="dl">Descargar datos.json</button></span></div>`:'';
+}
+function render(){
+  if(st.admin){const h=JSON.stringify(DB.months);if(h!==st.h){st.h=h;touch()}}
+  paintAdm();
+  head();
+  const v=$('#view');
+  v.innerHTML=st.tab==='tablero'?tablero():st.tab==='captura'?captura():st.tab==='config'?config():historial();
+  if(st.tab==='tablero')bindChart();
+  if(st.tab==='captura')capRecalc();
+}
+const taps=[];
+document.addEventListener('click',e=>{
+  if(e.target.closest('h1')){const n=Date.now();taps.push(n);while(taps.length&&n-taps[0]>1500)taps.shift();
+    if(taps.length>=3){taps.length=0;st.admin=!st.admin;if(!st.admin&&st.tab!=='tablero')st.tab='tablero';const mk=MKEY;pickDB();setMonth(MONTHS[mk]?mk:startMonth());render();toast(st.admin?'Modo captura activado':'Modo captura oculto');return}}
+  const b=e.target.closest('button');if(!b)return;
+  if(b.dataset.seg){st.seg=b.dataset.seg;render()}
+  else if(b.dataset.tab){st.tab=b.dataset.tab;render()}
+  else if(b.dataset.capseg){st.capSeg=b.dataset.capseg;render()}
+  else if(b.dataset.sort){st.sort=b.dataset.sort;render()}
+  else if(b.dataset.mv){const [sid,i,dx]=b.dataset.mv.split(':'),s=SEGS.find(x=>x.id===sid),a=+i,c=a+ +dx;if(c>=0&&c<s.rows.length){[s.rows[a],s.rows[c]]=[s.rows[c],s.rows[a]];render()}}
+  else if(b.id==='habcalc'){const [y,mo]=MKEY.split('-').map(Number);MONTHS[MKEY].hab=HAB=habCalc(y,mo-1);render()}
+  else if(b.id==='newmonth'){const nk=nextKey(Object.keys(MONTHS).sort().pop());newMonth(MKEY,nk);setMonth(nk);st.tab='config';render();toast(mlabel(nk)+' creado con los ejecutivos y objetivos del mes anterior')}
+  else if(b.dataset.cm){st.cm=b.dataset.cm;render()}
+  else if(b.dataset.hist){st.hist=b.dataset.hist;render()}
+  else if(b.id==='dl'){download()}
+  else if(b.id==='pub'){publish()}
+  else if(b.id==='ghsave'){ghSave()}
+  else if(b.id==='capsave'){capSave();render();if(ghCfg())publish()}
+  else if(b.id==='capclr'){document.querySelectorAll('#view tr[data-i] input').forEach(i=>i.value='');capRecalc()}
+});
+document.addEventListener('change',e=>{
+  const el=e.target;
+  if(el.id==='monthsel'){setMonth(el.value);if(!st.admin)st.tab='tablero';render()}
+  else if(el.id==='hab'){const v=Math.max(1,Math.min(31,parseInt(el.value)||HAB));MONTHS[MKEY].hab=HAB=v;if(st.capDay>HAB)st.capDay=HAB;render()}
+  else if(el.id==='costo'){const v=parseFloat(el.value.replace(/,/g,''));if(v>0){MONTHS[MKEY].costo=COSTO=v}render()}
+  else if(el.classList.contains('ob')||el.classList.contains('nm')){const tr=el.closest('tr'),s=SEGS.find(x=>x.id===tr.dataset.seg),r=s.rows[+tr.dataset.i];
+    if(el.classList.contains('ob')){const v=parseFloat(el.value.replace(/,/g,''));if(!isNaN(v)&&v>=0)r.o=v}else if(el.value.trim())r.n=el.value.trim();render()}
+
+  if(e.target.id==='cut'){st.cut=+e.target.value;render()}
+  if(e.target.id==='capday'){st.capDay=+e.target.value;render()}
+});
+document.addEventListener('input',e=>{if(e.target.classList.contains('cap'))capRecalc()});
+let drag=null;
+document.addEventListener('dragstart',e=>{const g=e.target.closest&&e.target.closest('.grip');if(!g)return;const tr=g.closest('tr');drag={seg:tr.dataset.seg,i:+tr.dataset.i};e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain','x');e.dataTransfer.setDragImage(tr,10,10)});
+document.addEventListener('dragover',e=>{const tr=e.target.closest&&e.target.closest('tr[data-seg]');document.querySelectorAll('tr.over').forEach(x=>x.classList.remove('over'));if(drag&&tr&&tr.dataset.seg===drag.seg){e.preventDefault();tr.classList.add('over')}});
+document.addEventListener('drop',e=>{const tr=e.target.closest&&e.target.closest('tr[data-seg]');if(drag&&tr&&tr.dataset.seg===drag.seg){e.preventDefault();const s=SEGS.find(x=>x.id===drag.seg),[it]=s.rows.splice(drag.i,1);s.rows.splice(+tr.dataset.i,0,it);drag=null;render();toast('Orden actualizado')}});
+document.addEventListener('dragend',()=>{drag=null;document.querySelectorAll('tr.over').forEach(x=>x.classList.remove('over'))});
+$('#yr').textContent=new Date().getFullYear();
+async function boot(){
+  try{const r=await fetch('datos.json?t='+Date.now(),{cache:'no-store'});if(r.ok){const j=await r.json();if(j&&j.months)SRV=j}}catch(e){}
+  pickDB();setMonth(startMonth());render();
+}
+boot();
+</script></body></html>
