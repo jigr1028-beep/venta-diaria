@@ -168,13 +168,19 @@ async function publish(){
   if(PUBLISHING)return;PUBLISHING=true;st.msg='Publicando…';paintAdm();
   const url=`https://api.github.com/repos/${c.o}/${c.r}/contents/datos.json`,H={'Authorization':'Bearer '+c.t,'Accept':'application/vnd.github+json'},br=c.b||'main';
   try{
-    let sha;const g=await fetch(url+'?ref='+encodeURIComponent(br),{headers:H});
-    if(g.ok)sha=(await g.json()).sha;else if(g.status!==404)throw new Error(g.status);
-    const body={message:'Venta diaria '+DB.updated.slice(0,16),content:b64(JSON.stringify(DB)),branch:br};if(sha)body.sha=sha;
-    const p=await fetch(url,{method:'PUT',headers:{...H,'Content-Type':'application/json'},body:JSON.stringify(body)});
-    if(!p.ok)throw new Error(p.status);
+    let ok=false,last;
+    for(let i=0;i<4&&!ok;i++){
+      let sha;const g=await fetch(url+'?ref='+encodeURIComponent(br)+'&t='+Date.now(),{headers:H,cache:'no-store'});
+      if(g.ok)sha=(await g.json()).sha;else if(g.status!==404)throw new Error(g.status);
+      const body={message:'Venta diaria '+DB.updated.slice(0,16),content:b64(JSON.stringify(DB)),branch:br};if(sha)body.sha=sha;
+      const p=await fetch(url,{method:'PUT',headers:{...H,'Content-Type':'application/json'},body:JSON.stringify(body),cache:'no-store'});
+      if(p.ok){ok=true;break}
+      last=p.status;if(p.status!==409&&p.status!==422)throw new Error(p.status);
+      await new Promise(r=>setTimeout(r,1200*(i+1)));
+    }
+    if(!ok)throw new Error(last);
     lsSet('pub',DB.updated);st.dirty=false;st.msg='Publicado. Tarda cerca de un minuto en verse para todos.';
-  }catch(e){st.msg='No se pudo publicar ('+e.message+'). '+ghErr(String(e.message))}
+  }catch(e){st.dirty=true;st.msg='No se pudo publicar ('+e.message+'). '+ghErr(String(e.message))}
   PUBLISHING=false;toast(st.msg);render()
 }
 async function ghSave(){
