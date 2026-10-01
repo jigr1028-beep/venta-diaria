@@ -193,7 +193,7 @@ async function ghSave(){
   }catch(e){toast('No se pudo conectar ('+e.message+'). '+ghErr(String(e.message)))}
 }
 const $=s=>document.querySelector(s);
-const money=n=>n=>'$'+Math.round(n).toLocaleString('es-MX');
+const money=n=>'$'+Math.round(n).toLocaleString('es-MX');
 const mm=n=>'$'+(n/1e6).toLocaleString('es-MX',{minimumFractionDigits:2,maximumFractionDigits:2})+' M';
 const pc=(n,d=0)=>!isFinite(n)?'—':(n*100).toLocaleString('es-MX',{minimumFractionDigits:d,maximumFractionDigits:d})+'%';
 const sgn=n=>(n<0?'−':'+')+money(Math.abs(n));
