@@ -113,7 +113,7 @@ table.cfg td{padding:6px}table.cfg th:nth-child(3),table.cfg td:nth-child(3){tex
 @media (max-width:900px){.top{grid-template-columns:minmax(0,1fr)}}
 @media (max-width:640px){.hide-s{display:none}.kpi .v{font-size:22px}}
 @media (prefers-reduced-motion:reduce){.toast{transition:none}}
-.medal{font-size:15px;margin-right:2px}</style></head><body>
+.medal{font-size:15px;margin-right:2px}.pick{cursor:pointer}.pick:hover td{background:var(--soft)}.pick.on td{background:var(--s1t)}.pick.on td:first-child{box-shadow:inset 3px 0 0 var(--s1)}</style></head><body>
 
 <header class="site"><div class="in"><img class="logo" alt="LLYASA Llantas + Taller" src="data:image/png;base64,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"><nav class="navs" id="tabs" role="tablist" aria-label="Secciones"></nav></div></header>
 <div class="wrap">
@@ -140,7 +140,7 @@ const habCalc=(y,m)=>{let n=0;const dim=new Date(y,m+1,0).getDate();for(let d=1;
 const mlabel=k=>{const [y,m]=k.split('-');return MNAMES[+m-1]+' '+y};
 const pad31=a=>{while(a.length<31)a.push(null);return a};
 function newMonth(from,key){
-  const [y,m]=key.split('-').map(Number),src=MONTHS[from],cp=a=>a.map(r=>({n:r.n,o:r.o,d:pad31([])}));
+  const [y,m]=key.split('-').map(Number),src=MONTHS[from],cp=a=>a.map(r=>{const x={n:r.n,o:r.o,d:pad31([])};if(r.ll)x.ll={m:r.ll.m,d:pad31([])};if(r.cl)x.cl={asig:r.cl.asig,d:pad31([])};return x});
   MONTHS[key]={hab:habCalc(y,m-1),costo:src.costo,nac:cp(src.nac),ty:cp(src.ty)};
 }
 const nextKey=k=>{let [y,m]=k.split('-').map(Number);m++;if(m>12){m=1;y++}return y+'-'+String(m).padStart(2,'0')};
@@ -155,7 +155,7 @@ function pickDB(){
 function touch(){DB.updated=new Date().toISOString();lsSet('draft',JSON.stringify(DB));st.dirty=true}
 function setMonth(k){
   MKEY=k;const M=MONTHS[k];HAB=M.hab;COSTO=M.costo;SEGS[0].rows=M.nac;SEGS[1].rows=M.ty;
-  st.cut=lastDay();st.capDay=Math.min(HAB,st.cut||1);
+  st.sel=null;st.cut=lastDay();st.capDay=Math.min(HAB,st.cut||1);
 }
 function startMonth(){const ks=Object.keys(MONTHS).sort(),n=new Date(),nk=n.getFullYear()+'-'+String(n.getMonth()+1).padStart(2,'0');return MONTHS[nk]?nk:ks[ks.length-1]}
 function download(){const b=new Blob([JSON.stringify(DB)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='datos.json';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1500);toast('datos.json descargado. Súbelo a Netlify para publicar.')}
@@ -291,6 +291,71 @@ function bindChart(){
   });
   hit.addEventListener('mouseleave',()=>{tip.hidden=true;xh.setAttribute('visibility','hidden')});
 }
+
+const hasCalls=r=>!!(r.ll&&r.ll.m>0);
+const hasCli=r=>!!(r.cl&&r.cl.asig>0);
+
+function selRow(){if(!st.sel)return null;const [sid,i]=st.sel.split(':'),s=SEGS.find(x=>x.id===sid),r=s&&s.rows[+i];return r?{s,r,ty:sid==='ty'}:null}
+function kpisSel(){
+  const {s,r,ty}=selRow(),c=calc(r,st.cut),proy=c.acum/st.cut*HAB;
+  const L=ty&&hasCalls(r)?r.ll:null,hoy=L?(L.d[st.cut-1]||0):0;
+  const k=(l,v,n,cls='')=>`<div class="kpi"><div class="l">${l}</div><div class="v ${cls}">${v}</div><div class="n">${n}</div></div>`;
+  const t4=L?(hasCli(r)?k('Clientes con compra',(r.cl.d[st.cut-1]||0)+' <span style="font-size:15px;color:var(--muted)">de '+r.cl.asig+'</span>','Penetración '+pc((r.cl.d[st.cut-1]||0)/r.cl.asig,1)+' de su cartera'):''):k('Proyección de cierre',mm(proy),pc(proy/r.o)+' del objetivo al ritmo actual');
+  const t3=L?k('Llamadas del día '+st.cut,hoy+' <span style="font-size:15px;color:var(--muted)">de '+L.m+'</span>',hoy>=L.m?'Cumplió la meta de llamadas':'Por debajo de la meta de llamadas',hoy>=L.m?'pos':'neg'):k('Venta del día '+st.cut,mm(c.last),pc(c.pl)+' del objetivo diario ('+mm(c.od)+')');
+  return `<div class="kpis">${k('Venta acumulada',mm(c.acum),'de '+mm(r.o)+' · '+pc(c.pm,1)+' del objetivo')}
+  ${k('Contra el ritmo',(c.dif<0?'−':'+')+mm(Math.abs(c.dif)),'objetivo a hoy '+mm(c.oa)+' · cumplimiento '+pc(c.ritmo,1),c.dif<0?'neg':'pos')}
+  ${t3}${t4}</div>`
+}
+function chartSel(){
+  const {s,r,ty}=selRow(),cut=st.cut,cm=st.cm,L=ty&&hasCalls(r)?r.ll:null,calls=!!L&&st.calls!==false;
+  const W=760,H=190,m={l:50,r:cm==='acum'?150:(calls?62:10),t:12,b:24},iw=W-m.l-m.r,ih=H-m.t-m.b,X=d=>m.l+d/HAB*iw,od=r.o/HAB;
+  let g='',leg='';const col=s.c;
+  if(cm==='dia'){
+    const vals=[];for(let d=1;d<=cut;d++)vals.push(r.d[d-1]||0);
+    const mx=Math.max(od,...vals)*1.12,step=[1e4,2e4,25e3,5e4,1e5,2e5,25e4,5e5,1e6].find(x=>mx/x<=5)||1e6,ymax=Math.ceil(mx/step)*step,Y=v=>m.t+ih-v/ymax*ih,bw=iw/HAB;
+    for(let v=0;v<=ymax+1;v+=step)g+=`<line x1="${m.l}" x2="${m.l+iw}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--line)"/><text x="${m.l-8}" y="${Y(v)+4}" text-anchor="end" font-size="11" fill="var(--muted)">${v>=1e6?'$'+(v/1e6)+' M':'$'+Math.round(v/1e3)+'k'}</text>`;
+    for(let d=5;d<=HAB;d+=5)g+=`<text x="${X(d-.5)}" y="${H-7}" text-anchor="middle" font-size="11" fill="var(--muted)">${d}</text>`;
+    vals.forEach((v,i)=>{g+=`<rect x="${X(i)+bw*.15}" y="${Y(v)}" width="${bw*.7}" height="${Math.max(0,Y(0)-Y(v))}" rx="2" fill="${col}" opacity="${v>=od?1:.55}"/>`});
+    g+=`<line x1="${m.l}" x2="${m.l+iw}" y1="${Y(od)}" y2="${Y(od)}" stroke="var(--ink)" stroke-width="1.5" stroke-dasharray="5 4"/>`;
+    leg=`<span><i class="dot" style="background:${col}"></i>Venta del día (pleno = cumplió)</span><span><i class="ldash" style="border-color:var(--ink)"></i>Objetivo diario ${mm(od)}</span>`;
+    if(calls){
+      const cmx=Math.max(L.m*1.3,...L.d.slice(0,cut).map(v=>v||0))*1.08,Yc=v=>m.t+ih-v/cmx*ih,cs=Math.ceil(cmx/4/5)*5;
+      for(let v=cs;v<=cmx;v+=cs)if(Math.abs(Yc(v)-Yc(L.m))>13)g+=`<text x="${m.l+iw+6}" y="${Yc(v)+4}" font-size="11" fill="var(--ink2)">${v}</text>`;
+      g+=`<line x1="${m.l}" x2="${m.l+iw}" y1="${Yc(L.m)}" y2="${Yc(L.m)}" stroke="var(--ink2)" stroke-width="1.2" stroke-dasharray="2 4"/><text x="${m.l+iw+6}" y="${Yc(L.m)+4}" font-size="11" font-weight="700" fill="var(--ink)">Meta ${L.m}</text>`;
+      g+=`<polyline fill="none" stroke="var(--ink)" stroke-width="2" stroke-linejoin="round" points="${L.d.slice(0,cut).map((v,i)=>v==null?null:(X(i)+bw/2)+','+Yc(v)).filter(Boolean).join(' ')}"/>`;
+      L.d.slice(0,cut).forEach((v,i)=>{if(v==null)return;const ok=v>=L.m;g+=`<circle cx="${X(i)+bw/2}" cy="${Yc(v||0)}" r="3.6" fill="${ok?'var(--good)':'var(--crit)'}" stroke="var(--surface)" stroke-width="1.5"/>`});
+      leg+=`<span><i class="dot" style="background:var(--good)"></i>Llamadas (eje derecho): cumplió meta</span><span><i class="dot" style="background:var(--crit)"></i>no cumplió</span>`}
+  }else{
+    const acc=[0],cal=[0];for(let d=1;d<=cut;d++){acc.push(acc[d-1]+(r.d[d-1]||0));cal.push(cal[d-1]+(L?(L.d[d-1]||0):0))}
+    const pv=acc.map(v=>v/r.o),pcl=L?cal.map(v=>v/(L.m*HAB)):[],pen=(hasCli(r)?[0,...(()=>{let p=0;return r.cl.d.slice(0,cut).map(v=>{if(v!=null)p=v;return p/r.cl.asig})})()]:[]),proy=pv[cut]/cut*HAB,cli=hasCli(r)&&st.cli!==false;
+    const ymax=Math.max(1,proy,pv[cut],...(calls?pcl:[0]),...(cli?pen:[0]))*1.06,Y=v=>m.t+ih-v/ymax*ih;
+    for(let v=0;v<=ymax+1e-9;v+=.25)g+=`<line x1="${m.l}" x2="${m.l+iw}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--line)"/><text x="${m.l-8}" y="${Y(v)+4}" text-anchor="end" font-size="11" fill="var(--muted)">${pc(v)}</text>`;
+    for(let d=5;d<=HAB;d+=5)g+=`<text x="${X(d)}" y="${H-7}" text-anchor="middle" font-size="11" fill="var(--muted)">${d}</text>`;
+    g+=`<line x1="${X(0)}" y1="${Y(0)}" x2="${X(HAB)}" y2="${Y(1)}" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="5 4"/>`;
+    g+=`<polyline fill="none" stroke="${col}" stroke-width="2.5" stroke-linejoin="round" points="${pv.map((v,d)=>X(d)+','+Y(v)).join(' ')}"/><line x1="${X(cut)}" y1="${Y(pv[cut])}" x2="${X(HAB)}" y2="${Y(proy)}" stroke="${col}" stroke-width="2" stroke-dasharray="2 5"/>`;
+    g+=`<circle cx="${X(cut)}" cy="${Y(pv[cut])}" r="4.5" fill="${col}" stroke="var(--surface)" stroke-width="2"/>`;
+    const ends=[{y:Y(proy),t:'Venta · cierre ~'+pc(proy),c:col},{y:Y(1),t:'Objetivo 100%',c:'var(--ink)'}];
+    if(calls){g+=`<polyline fill="none" stroke="var(--ink)" stroke-width="2" stroke-linejoin="round" points="${pcl.map((v,d)=>X(d)+','+Y(v)).join(' ')}"/><circle cx="${X(cut)}" cy="${Y(pcl[cut])}" r="4" fill="var(--ink)" stroke="var(--surface)" stroke-width="2"/>`;ends.push({y:Y(pcl[cut]),t:'Llamadas '+pc(pcl[cut]),c:'var(--ink)'})}
+    if(cli){g+=`<polyline fill="none" stroke="var(--s1)" stroke-width="2" stroke-linejoin="round" points="${pen.map((v,d)=>X(d)+','+Y(v)).join(' ')}"/><circle cx="${X(cut)}" cy="${Y(pen[cut])}" r="4" fill="var(--s1)" stroke="var(--surface)" stroke-width="2"/>`;ends.push({y:Y(pen[cut]),t:'Clientes c/compra '+pc(pen[cut]),c:'var(--s1)'})}
+    ends.sort((a,b)=>a.y-b.y);for(let i=1;i<ends.length;i++)if(ends[i].y-ends[i-1].y<14)ends[i].y=ends[i-1].y+14;
+    ends.forEach(e=>g+=`<text x="${m.l+iw+8}" y="${e.y+4}" font-size="12" font-weight="600" fill="${e.c}">${e.t}</text>`);
+    leg=`<span><i class="dot" style="background:${col}"></i>Venta acumulada (% de su objetivo)</span><span><i class="ldash"></i>Ruta ideal</span>`+(calls?`<span><i class="dot" style="background:var(--ink)"></i>Llamadas acumuladas (% de su meta del mes)</span>`:'')+(cli?`<span><i class="dot" style="background:var(--s1)"></i>Clientes con compra (% de su cartera)</span>`:'');
+  }
+  const tg=`<div class="seg sm" role="group">${[['dia','Venta por día'],['acum','Avance acumulado']].map(([id,n])=>`<button data-cm="${id}" aria-pressed="${cm===id}">${n}</button>`).join('')}</div>`;
+  const chip=(L?`<button class="btn ghost" data-calls="1" style="padding:4px 10px">${calls?'☑':'☐'} Llamadas</button>`:'')+(cm==='acum'&&hasCli(r)?`<button class="btn ghost" data-cli="1" style="padding:4px 10px">${st.cli!==false?'☑':'☐'} Clientes</button>`:'');
+  return `<div class="panel chartp"><div class="cols2" style="margin-bottom:4px"><h2><span class="gname"><i class="dot" style="background:${col}"></i>${r.n}</span> <span style="font-weight:400;color:var(--muted)">· ${cm==='dia'?'venta por día contra su objetivo diario':'avance acumulado contra su objetivo del mes'}</span></h2><div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">${chip}${tg}<button class="btn ghost" data-clear="1" style="padding:4px 10px">Ver todos</button></div></div>
+  <div class="legend">${leg}</div><div class="chartbox"><svg class="chart" viewBox="0 0 ${W} ${H}" role="img">${g}</svg></div></div>`
+}
+
+function callsTable(list){
+  const info=r=>{const L=r.ll||{m:0,d:[]},C=r.cl||{asig:0,d:[]},hoy=L.d[st.cut-1]||0,ac=L.d.slice(0,st.cut).reduce((a,b)=>a+(b||0),0),cc=C.d[st.cut-1]||0;return {L,C,hoy,ac,cc}};
+  const bar=p=>`<span class="pb">${pc(p)}<i><s style="width:${Math.min(Math.max(p,0),1)*100}%;background:var(--s2)"></s></i></span>`;
+  const rows=list.map(({r})=>{const {L,C,hoy,ac,cc}=info(r),idx=SEGS[1].rows.indexOf(r),hc=L.m>0,hl=C.asig>0;
+    return `<tr class="pick ${st.sel==='ty:'+idx?'on':''}" data-sel="ty:${idx}"><td class="name" title="${r.n}">${r.n}</td><td>${hc?L.m:'—'}</td><td>${hc?hoy:'—'}</td><td>${hc?YN(hoy>=L.m):'—'}</td><td>${hc?bar(ac/(L.m*st.cut)):'—'}</td><td>${hl?C.asig:'—'}</td><td>${hl?cc:'—'}</td><td>${hl?bar(cc/C.asig):'—'}</td><td>${hl?C.asig-cc:'—'}</td></tr>`}).join('');
+  const T=list.reduce((a,{r})=>{const x=info(r);if(x.L.m>0){a.m+=x.L.m;a.h+=x.hoy;a.ac+=x.ac}if(x.C.asig>0){a.A+=x.C.asig;a.c+=x.cc}return a},{m:0,h:0,ac:0,A:0,c:0});
+  return `<h2 style="margin:20px 0 2px;font-size:14px">Llamadas y cartera de clientes</h2><div class="hint">Llamadas: meta fija por ejecutivo. Clientes con compra: clientes de su cartera que ya compraron en el mes, al corte del día ${st.cut}.</div>
+  <div class="scroll"><table><thead><tr><th>Ejecutivo</th><th>Meta llamadas/día</th><th>Llamadas día ${st.cut}</th><th>Cumple hoy</th><th>% meta de llamadas del mes</th><th>Clientes asignados</th><th>Con compra</th><th>Penetración</th><th>Sin compra</th></tr></thead><tbody>${rows}<tr class="tot"><td>Total TYCMORS</td><td>${T.m||'—'}</td><td>${T.m?T.h:'—'}</td><td>${T.m?YN(T.h>=T.m):'—'}</td><td>${T.m?pc(T.ac/(T.m*st.cut)):'—'}</td><td>${T.A||'—'}</td><td>${T.A?T.c:'—'}</td><td>${T.A?pc(T.c/T.A):'—'}</td><td>${T.A?T.A-T.c:'—'}</td></tr></tbody></table></div>`
+}
 function execTable(){
   const rem=HAB-st.cut;
   return visSegs().map((s,k)=>{
@@ -299,24 +364,24 @@ function execTable(){
     let list=s.rows.map(r=>({r,c:calc(r,st.cut)}));
     if(st.sort==='ritmo')list.sort((a,b)=>b.c.ritmo-a.c.ritmo);
     const need=c=>rem>0?Math.max(0,(c.od*HAB-c.acum)/rem)/COSTO:0;
-    let body=list.map(({r,c})=>`<tr><td class="name" title="${r.n}">${(m=>m?`<span class="medal" title="${m[1]}">${m[0]}</span> `:'<span class="medal" style="visibility:hidden">⭐</span> ')(medal(c))}${r.n}</td><td>${money(r.o)}</td><td>${money(c.last)}</td>
+    let body=list.map(({r,c})=>`<tr class="pick ${st.sel===s.id+':'+s.rows.indexOf(r)?'on':''}" data-sel="${s.id}:${s.rows.indexOf(r)}" title="Clic para ver su avance arriba"><td class="name" title="${r.n}">${(m=>m?`<span class="medal" title="${m[1]}">${m[0]}</span> `:'<span class="medal" style="visibility:hidden">⭐</span> ')(medal(c))}${r.n}</td><td>${money(r.o)}</td><td>${money(c.last)}</td>
       <td>${pc(c.pl)}</td><td>${YN(c.last>=c.od-0.005)}</td><td>${money(c.acum)}</td>
       <td><span class="pb">${pc(c.pm)}<i><s style="width:${Math.min(c.pm,1)*100}%;background:${s.c}"></s></i></span></td>
       <td class="${c.dif<0?'neg':'pos'}">${sgn(c.dif)}</td><td>${money(c.avg)}</td>${ty?`<td>${rem>0?Math.ceil(need(c)).toLocaleString('es-MX'):'—'}</td><td>${Math.round(c.avg/COSTO).toLocaleString('es-MX')}</td>`:''}<td>${pill(c.ritmo)}</td></tr>`).join('');
     const tn=list.reduce((a,x)=>a+need(x.c),0);
     body+=`<tr class="tot"><td>Total ${s.name}</td><td>${money(T.o)}</td><td>${money(T.last)}</td><td>${pc(T.pl)}</td><td>${YN(T.last>=T.od)}</td><td>${money(T.acum)}</td>
      <td><span class="pb">${pc(T.pm)}<i><s style="width:${Math.min(T.pm,1)*100}%;background:${s.c}"></s></i></span></td><td class="${T.dif<0?'neg':'pos'}">${sgn(T.dif)}</td><td>${money(T.avg)}</td>${ty?`<td>${rem>0?Math.ceil(tn).toLocaleString('es-MX'):'—'}</td><td>${Math.round(T.avg/COSTO).toLocaleString('es-MX')}</td>`:''}<td>${pill(T.ritmo)}</td></tr>`;
-    const hint=k===0?`⭐ Cumplió el objetivo del día · 🔥 Vendió 150% o más del objetivo · 🏆 Vendió el doble o más del objetivo`:'';
+    const hint=k===0?`⭐ Cumplió el objetivo del día · 🔥 Vendió 150% o más del objetivo · 🏆 Vendió el doble o más del objetivo · Haz clic en un ejecutivo para ver su avance arriba`:'';
     const lh=ty?`<th class="w" title="Lo que falta del objetivo ÷ días hábiles restantes ÷ costo promedio de llanta">Llantas/día necesarias</th><th class="w" title="Promedio diario vendido ÷ costo promedio de llanta">Llantas/día vendidas</th>`:'';
     return `<div class="panel"><h2><span class="gname"><i class="dot" style="background:${s.c}"></i>${s.name}</span></h2>
     <div class="hint">${hint}${ty?` Llantas calculadas con costo promedio de ${money(COSTO)} (editable en Configuración).`:''}</div>
-    <div class="scroll"><table><thead><tr><th>Ejecutivo</th><th>Obj. mensual</th><th>Venta día ${st.cut}</th><th>% obj. diario</th><th>Cumple hoy</th><th>Acumulado</th><th>% avance mes</th><th>Dif. vs ritmo</th><th>Prom. diario</th>${lh}<th>Ritmo del mes</th></tr></thead><tbody>${body}</tbody></table></div></div>`}).join('')
+    <div class="scroll"><table><thead><tr><th>Ejecutivo</th><th>Obj. mensual</th><th>Venta día ${st.cut}</th><th>% obj. diario</th><th>Cumple hoy</th><th>Acumulado</th><th>% avance mes</th><th>Dif. vs ritmo</th><th>Prom. diario</th>${lh}<th>Ritmo del mes</th></tr></thead><tbody>${body}</tbody></table></div>${ty&&list.some(x=>hasCalls(x.r)||hasCli(x.r))?callsTable(list):''}</div>`}).join('')
 }
 function tablero(){
   const ld=lastDay();
   if(!ld||!dataSegs().length)return `<div class="panel"><h2>Todavía no hay ventas en ${mlabel(MKEY)}</h2><div class="hint" style="margin:0">${st.admin?'Abre Captura del día y registra el acumulado del día hábil 1.':'La venta del mes aparecerá aquí en cuanto se capture el primer día.'}</div></div>`;
   return `<div class="bar"><label class="field">Corte al día hábil <select id="cut">${Array.from({length:ld},(_,i)=>`<option value="${i+1}" ${i+1===st.cut?'selected':''}>${i+1}</option>`).join('')}</select></label>
-  <div class="field">Orden <div class="seg sm" role="group" aria-label="Orden de ejecutivos">${[['manual','Manual'],['ritmo','Por ritmo']].map(([id,n])=>`<button data-sort="${id}" aria-pressed="${st.sort===id}">${n}</button>`).join('')}</div></div></div>`+`<div class="top">${kpis()}${chart()}</div>`+execTable();
+  <div class="field">Orden <div class="seg sm" role="group" aria-label="Orden de ejecutivos">${[['manual','Manual'],['ritmo','Por ritmo']].map(([id,n])=>`<button data-sort="${id}" aria-pressed="${st.sort===id}">${n}</button>`).join('')}</div></div></div>`+`<div class="top">${st.sel&&selRow()?kpisSel():kpis()}${st.sel&&selRow()?chartSel():chart()}</div>`+execTable();
 }
 
 /* ---------- Captura ---------- */
@@ -326,12 +391,12 @@ function captura(){
     const prev=sumTo(r,day-1),v=r.d[day-1],od=r.o/HAB;
     return `<tr data-i="${i}" data-prev="${prev}"><td class="name">${r.n}</td><td>${money(od)}</td><td>${money(prev)}</td>
     <td><input class="num cap" id="cap${i}" inputmode="decimal" value="${v===null?'':Math.round((prev+v)*100)/100}" placeholder="Acumulado CRM" aria-label="Acumulado CRM ${r.n}"></td>
-    <td class="vd">—</td><td class="pd">—</td><td class="sd"></td></tr>`}).join('');
+    <td class="vd">—</td><td class="pd">—</td><td class="sd"></td>${s.id==='ty'?`<td><input class="num capll" inputmode="numeric" value="${r.ll&&r.ll.d[day-1]!=null?r.ll.d[day-1]:''}" placeholder="Llamadas" aria-label="Llamadas del día ${r.n}" style="width:90px"></td><td><input class="num capcl" inputmode="numeric" value="${r.cl&&r.cl.d[day-1]!=null?r.cl.d[day-1]:''}" placeholder="Acum. mes" aria-label="Clientes con compra ${r.n}" style="width:90px"></td>`:''}</tr>`}).join('');
   return `<div class="bar"><div class="seg" role="group" aria-label="Segmento a capturar">${SEGS.map(x=>`<button data-capseg="${x.id}" aria-pressed="${x.id===st.capSeg}"><span class="dot" style="background:${x.c}"></span>${x.name}</button>`).join('')}</div>
    <label class="field">Día hábil <select id="capday">${Array.from({length:HAB},(_,i)=>`<option value="${i+1}" ${i+1===day?'selected':''}>Día hábil ${i+1}</option>`).join('')}</select></label></div>
-   <div class="note">Captura el <b>acumulado del mes</b> que te da el CRM. La venta del día se calcula sola restando el acumulado del día anterior. Los números del día ${day} ya están cargados para que veas la resta.</div>
-   <div class="panel"><div class="scroll"><table><thead><tr><th>Ejecutivo</th><th>Obj. diario</th><th>Acumulado día ${day-1}</th><th>Acumulado CRM día ${day}</th><th>Venta del día</th><th>% obj. diario</th><th>Revisión</th></tr></thead><tbody>${rows}
-   <tr class="tot"><td>Total ${s.name}</td><td id="tod"></td><td id="tprev"></td><td id="tacum"></td><td id="tvd"></td><td id="tpd"></td><td></td></tr></tbody></table></div>
+   <div class="note">Captura el <b>acumulado del mes</b> que te da el CRM. La venta del día se calcula sola restando el acumulado del día anterior. Los números del día ${day} ya están cargados para que veas la resta.${s.id==='ty'?' En TYCMORS captura también las <b>llamadas del día</b> (total de ese día) y los <b>clientes con compra</b> (acumulado del mes).':''}</div>
+   <div class="panel"><div class="scroll"><table><thead><tr><th>Ejecutivo</th><th>Obj. diario</th><th>Acumulado día ${day-1}</th><th>Acumulado CRM día ${day}</th><th>Venta del día</th><th>% obj. diario</th><th>Revisión</th>${s.id==='ty'?'<th>Llamadas del día</th><th>Clientes con compra (acum. mes)</th>':''}</tr></thead><tbody>${rows}
+   <tr class="tot"><td>Total ${s.name}</td><td id="tod"></td><td id="tprev"></td><td id="tacum"></td><td id="tvd"></td><td id="tpd"></td><td></td>${s.id==='ty'?'<td></td><td></td>':''}</tr></tbody></table></div>
    <div class="cols2" style="margin:14px 0 0"><span class="hint" id="capmsg" style="margin:0"></span><div style="display:flex;gap:8px"><button class="btn ghost" id="capclr">Limpiar día</button><button class="btn" id="capsave">Guardar día ${day}</button></div></div></div>`
 }
 function capRecalc(){
@@ -348,6 +413,12 @@ function capRecalc(){
     if(v<0){inp.classList.add('bad');sd.innerHTML='<span class="neg">Menor al día anterior</span>';bad++}
     else{inp.classList.remove('bad');sd.innerHTML=v===0?'Sin venta':'<span class="pos">Listo</span>';tv+=v}
   });
+  document.querySelectorAll('#view tr[data-i]').forEach(tr=>{const a=tr.querySelector('.capll'),b=tr.querySelector('.capcl');if(!a)return;const r=s.rows[+tr.dataset.i];
+    [a,b].forEach(x=>x.classList.remove('bad'));
+    const va=a.value.trim(),vb=b.value.trim();
+    if(va!==''&&!(parseFloat(va)>=0)){a.classList.add('bad');bad++}
+    if(vb!==''&&(!(parseFloat(vb)>=0)||(r.cl&&r.cl.asig>0&&parseFloat(vb)>r.cl.asig))){b.classList.add('bad');bad++}
+  });
   $('#tod').textContent=money(tod);$('#tprev').textContent=money(tp);$('#tacum').textContent=money(ta);$('#tvd').textContent=money(tv);$('#tpd').textContent=pc(tod?tv/tod:0);
   $('#capmsg').textContent=bad?`${bad} fila(s) por corregir antes de guardar.`:'Todo en orden para guardar.';
   $('#capsave').disabled=!!bad;$('#capsave').style.opacity=bad?.45:1;
@@ -358,6 +429,9 @@ function capSave(){
     const i=+tr.dataset.i,raw=tr.querySelector('input').value.trim().replace(/,/g,'');
     s.rows[i].d[day-1]=raw===''?null:Math.max(0,parseFloat(raw)-(+tr.dataset.prev));
   });
+  if(s.id==='ty')document.querySelectorAll('#view tr[data-i]').forEach(tr=>{const rr=s.rows[+tr.dataset.i],a=tr.querySelector('.capll'),b=tr.querySelector('.capcl'),va=a.value.trim().replace(/,/g,''),vb=b.value.trim().replace(/,/g,'');
+    if(va!==''){rr.ll=rr.ll||{m:0,d:pad31([])};rr.ll.d[day-1]=Math.round(parseFloat(va))}else if(rr.ll)rr.ll.d[day-1]=null;
+    if(vb!==''){rr.cl=rr.cl||{asig:0,d:pad31([])};rr.cl.d[day-1]=Math.round(parseFloat(vb))}else if(rr.cl)rr.cl.d[day-1]=null});
   const ld=lastDay();if(day>=st.cut&&day<=ld)st.cut=Math.max(st.cut,day);
   toast(`Día ${day} de ${s.name} guardado en este equipo.`);
 }
@@ -392,11 +466,11 @@ function config(){
     const tot=s.rows.reduce((a,r)=>a+r.o,0);
     const rows=s.rows.map((r,i)=>`<tr data-seg="${s.id}" data-i="${i}"><td class="grip" draggable="true" title="Arrastra para mover" aria-hidden="true">⋮⋮</td><td>${i+1}</td>
       <td><input class="num nm" value="${r.n.replace(/"/g,'&quot;')}" aria-label="Nombre" style="width:230px"></td>
-      <td><input class="num ob" inputmode="decimal" value="${r.o}" aria-label="Objetivo mensual de ${r.n}" style="width:130px;text-align:right"></td><td>${money(r.o/HAB)}</td>
+      <td><input class="num ob" inputmode="decimal" value="${r.o}" aria-label="Objetivo mensual de ${r.n}" style="width:130px;text-align:right"></td><td>${money(r.o/HAB)}</td>${s.id==='ty'?`<td><input class="num lm" inputmode="numeric" value="${r.ll?r.ll.m:''}" placeholder="0" aria-label="Meta de llamadas por día de ${r.n}" style="width:90px;text-align:right"></td><td><input class="num ca" inputmode="numeric" value="${r.cl?r.cl.asig:''}" placeholder="0" aria-label="Clientes asignados de ${r.n}" style="width:90px;text-align:right"></td>`:''}
       <td class="mvc"><button class="btn ghost sm" data-mv="${s.id}:${i}:-1" aria-label="Subir ${r.n}" ${i===0?'disabled':''}>↑</button> <button class="btn ghost sm" data-mv="${s.id}:${i}:1" aria-label="Bajar ${r.n}" ${i===s.rows.length-1?'disabled':''}>↓</button></td></tr>`).join('');
     return `<div class="panel"><h2><span class="gname"><i class="dot" style="background:${s.c}"></i>${s.name}</span></h2><div class="hint">Arrastra el asa ⋮⋮ o usa las flechas para ordenar. Este orden se usa en el tablero, la captura y el historial.</div>
-     <div class="scroll"><table class="cfg"><thead><tr><th></th><th>#</th><th>Ejecutivo</th><th>Objetivo mensual</th><th>Objetivo diario</th><th>Mover</th></tr></thead><tbody>${rows}
-     <tr class="tot"><td></td><td></td><td>Total ${s.name}</td><td>${money(tot)}</td><td>${money(tot/HAB)}</td><td></td></tr></tbody></table></div></div>`}).join('');
+     <div class="scroll"><table class="cfg"><thead><tr><th></th><th>#</th><th>Ejecutivo</th><th>Objetivo mensual</th><th>Objetivo diario</th>${s.id==='ty'?'<th>Meta llamadas/día</th><th>Clientes asignados</th>':''}<th>Mover</th></tr></thead><tbody>${rows}
+     <tr class="tot"><td></td><td></td><td>Total ${s.name}</td><td>${money(tot)}</td><td>${money(tot/HAB)}</td>${s.id==='ty'?`<td>${s.rows.reduce((a,x)=>a+(x.ll?x.ll.m:0),0)||''}</td><td>${s.rows.reduce((a,x)=>a+(x.cl?x.cl.asig:0),0)||''}</td>`:''}<td></td></tr></tbody></table></div></div>`}).join('');
   const g=ghCfg()||{};
   const gh=`<div class="panel"><h2>Publicación en GitHub</h2><div class="hint">Con esto, Guardar día publica solo, sin descargar ni subir archivos. El token se guarda únicamente en este navegador.</div>
    <div class="bar" style="margin:0"><label class="field">Usuario<input class="num" id="gh_o" value="${g.o||''}" style="width:170px" autocomplete="off"></label>
@@ -441,11 +515,19 @@ document.addEventListener('click',e=>{
   else if(b.id==='capsave'){capSave();render();if(ghCfg())publish()}
   else if(b.id==='capclr'){document.querySelectorAll('#view tr[data-i] input').forEach(i=>i.value='');capRecalc()}
 });
+document.addEventListener('click',e=>{
+  if(e.target.closest('[data-clear]')){st.sel=null;render();return}
+  if(e.target.closest('[data-cli]')){st.cli=st.cli===false;render();return}
+  if(e.target.closest('[data-calls]')){st.calls=st.calls===false;render();return}
+  const tr=e.target.closest('tr[data-sel]');
+  if(tr&&!e.target.closest('button,input,select')){st.sel=st.sel===tr.dataset.sel?null:tr.dataset.sel;render();if(st.sel)window.scrollTo({top:0,behavior:'smooth'})}});
 document.addEventListener('change',e=>{
   const el=e.target;
   if(el.id==='monthsel'){setMonth(el.value);if(!st.admin)st.tab='tablero';render()}
   else if(el.id==='hab'){const v=Math.max(1,Math.min(31,parseInt(el.value)||HAB));MONTHS[MKEY].hab=HAB=v;if(st.capDay>HAB)st.capDay=HAB;render()}
   else if(el.id==='costo'){const v=parseFloat(el.value.replace(/,/g,''));if(v>0){MONTHS[MKEY].costo=COSTO=v}render()}
+  else if(el.classList.contains('lm')||el.classList.contains('ca')){const tr=el.closest('tr'),rr=SEGS.find(x=>x.id===tr.dataset.seg).rows[+tr.dataset.i],v=Math.max(0,Math.round(parseFloat(el.value.replace(/,/g,''))||0));
+    if(el.classList.contains('lm')){rr.ll=rr.ll||{m:0,d:pad31([])};rr.ll.m=v}else{rr.cl=rr.cl||{asig:0,d:pad31([])};rr.cl.asig=v}render()}
   else if(el.classList.contains('ob')||el.classList.contains('nm')){const tr=el.closest('tr'),s=SEGS.find(x=>x.id===tr.dataset.seg),r=s.rows[+tr.dataset.i];
     if(el.classList.contains('ob')){const v=parseFloat(el.value.replace(/,/g,''));if(!isNaN(v)&&v>=0)r.o=v}else if(el.value.trim())r.n=el.value.trim();render()}
 
