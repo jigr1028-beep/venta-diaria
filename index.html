@@ -306,10 +306,14 @@ function kpisSel(){
   ${k('Contra el ritmo',(c.dif<0?'−':'+')+mm(Math.abs(c.dif)),'objetivo a hoy '+mm(c.oa)+' · cumplimiento '+pc(c.ritmo,1),c.dif<0?'neg':'pos')}
   ${t3}${t4}</div>`
 }
+function selGeom(){
+  const {s,r,ty}=selRow(),cm=st.cm,L=ty&&hasCalls(r)?r.ll:null,calls=!!L&&st.calls!==false,cli=hasCli(r)&&st.cli!==false;
+  const W=760,H=190,m={l:50,r:cm==='acum'?150:(calls?62:10),t:12,b:24};
+  return {s,r,ty,cm,L,calls,cli,W,H,m,iw:W-m.l-m.r,ih:H-m.t-m.b}
+}
 function chartSel(){
-  const {s,r,ty}=selRow(),cut=st.cut,cm=st.cm,L=ty&&hasCalls(r)?r.ll:null,calls=!!L&&st.calls!==false;
-  const W=760,H=190,m={l:50,r:cm==='acum'?150:(calls?62:10),t:12,b:24},iw=W-m.l-m.r,ih=H-m.t-m.b,X=d=>m.l+d/HAB*iw,od=r.o/HAB;
-  let g='',leg='';const col=s.c;
+  const G=selGeom(),{s,r,L,calls,cli,cm,W,H,m,iw,ih}=G,cut=st.cut,X=d=>m.l+d/HAB*iw,od=r.o/HAB,col=s.c;
+  let g='',leg='';
   if(cm==='dia'){
     const vals=[];for(let d=1;d<=cut;d++)vals.push(r.d[d-1]||0);
     const mx=Math.max(od,...vals)*1.12,step=[1e4,2e4,25e3,5e4,1e5,2e5,25e4,5e5,1e6].find(x=>mx/x<=5)||1e6,ymax=Math.ceil(mx/step)*step,Y=v=>m.t+ih-v/ymax*ih,bw=iw/HAB;
@@ -323,11 +327,18 @@ function chartSel(){
       for(let v=cs;v<=cmx;v+=cs)if(Math.abs(Yc(v)-Yc(L.m))>13)g+=`<text x="${m.l+iw+6}" y="${Yc(v)+4}" font-size="11" fill="var(--ink2)">${v}</text>`;
       g+=`<line x1="${m.l}" x2="${m.l+iw}" y1="${Yc(L.m)}" y2="${Yc(L.m)}" stroke="var(--ink2)" stroke-width="1.2" stroke-dasharray="2 4"/><text x="${m.l+iw+6}" y="${Yc(L.m)+4}" font-size="11" font-weight="700" fill="var(--ink)">Meta ${L.m}</text>`;
       g+=`<polyline fill="none" stroke="var(--ink)" stroke-width="2" stroke-linejoin="round" points="${L.d.slice(0,cut).map((v,i)=>v==null?null:(X(i)+bw/2)+','+Yc(v)).filter(Boolean).join(' ')}"/>`;
-      L.d.slice(0,cut).forEach((v,i)=>{if(v==null)return;const ok=v>=L.m;g+=`<circle cx="${X(i)+bw/2}" cy="${Yc(v||0)}" r="3.6" fill="${ok?'var(--good)':'var(--crit)'}" stroke="var(--surface)" stroke-width="1.5"/>`});
+      L.d.slice(0,cut).forEach((v,i)=>{if(v==null)return;const ok=v>=L.m;g+=`<circle cx="${X(i)+bw/2}" cy="${Yc(v)}" r="3.6" fill="${ok?'var(--good)':'var(--crit)'}" stroke="var(--surface)" stroke-width="1.5"/>`});
       leg+=`<span><i class="dot" style="background:var(--good)"></i>Llamadas (eje derecho): cumplió meta</span><span><i class="dot" style="background:var(--crit)"></i>no cumplió</span>`}
+    if(cli){
+      const C=r.cl,pts=C.d.slice(0,cut).map((v,i)=>v==null?null:[i,v]).filter(Boolean);
+      if(pts.length){const cmax=Math.max(5,pts[pts.length-1][1]*1.25),Yk=v=>m.t+ih-v/cmax*ih;
+        g+=`<polyline fill="none" stroke="var(--s1)" stroke-width="2.2" stroke-linejoin="round" points="${pts.map(([i,v])=>(X(i)+bw/2)+','+Yk(v)).join(' ')}"/>`;
+        pts.forEach(([i,v])=>g+=`<rect x="${X(i)+bw/2-3.5}" y="${Yk(v)-3.5}" width="7" height="7" rx="1.5" fill="var(--s1)" stroke="var(--surface)" stroke-width="1.5"/>`);
+        const lp=pts[pts.length-1];g+=`<text x="${Math.min(X(lp[0])+bw/2,m.l+iw-34)}" y="${Yk(lp[1])-9}" text-anchor="middle" font-size="11.5" font-weight="700" fill="var(--s1)">${lp[1]} de ${C.asig}</text>`}
+      leg+=`<span><i class="dot" style="background:var(--s1);border-radius:2px"></i>Clientes con compra (acumulado del mes)</span>`}
   }else{
     const acc=[0],cal=[0];for(let d=1;d<=cut;d++){acc.push(acc[d-1]+(r.d[d-1]||0));cal.push(cal[d-1]+(L?(L.d[d-1]||0):0))}
-    const pv=acc.map(v=>v/r.o),pcl=L?cal.map(v=>v/(L.m*HAB)):[],pen=(hasCli(r)?[0,...(()=>{let p=0;return r.cl.d.slice(0,cut).map(v=>{if(v!=null)p=v;return p/r.cl.asig})})()]:[]),proy=pv[cut]/cut*HAB,cli=hasCli(r)&&st.cli!==false;
+    const pv=acc.map(v=>v/r.o),pcl=L?cal.map(v=>v/(L.m*HAB)):[],pen=(cli?[0,...(()=>{let p=0;return r.cl.d.slice(0,cut).map(v=>{if(v!=null)p=v;return p/r.cl.asig})})()]:[]),proy=pv[cut]/cut*HAB;
     const ymax=Math.max(1,proy,pv[cut],...(calls?pcl:[0]),...(cli?pen:[0]))*1.06,Y=v=>m.t+ih-v/ymax*ih;
     for(let v=0;v<=ymax+1e-9;v+=.25)g+=`<line x1="${m.l}" x2="${m.l+iw}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--line)"/><text x="${m.l-8}" y="${Y(v)+4}" text-anchor="end" font-size="11" fill="var(--muted)">${pc(v)}</text>`;
     for(let d=5;d<=HAB;d+=5)g+=`<text x="${X(d)}" y="${H-7}" text-anchor="middle" font-size="11" fill="var(--muted)">${d}</text>`;
@@ -341,10 +352,32 @@ function chartSel(){
     ends.forEach(e=>g+=`<text x="${m.l+iw+8}" y="${e.y+4}" font-size="12" font-weight="600" fill="${e.c}">${e.t}</text>`);
     leg=`<span><i class="dot" style="background:${col}"></i>Venta acumulada (% de su objetivo)</span><span><i class="ldash"></i>Ruta ideal</span>`+(calls?`<span><i class="dot" style="background:var(--ink)"></i>Llamadas acumuladas (% de su meta del mes)</span>`:'')+(cli?`<span><i class="dot" style="background:var(--s1)"></i>Clientes con compra (% de su cartera)</span>`:'');
   }
+  g+=`<line id="xhs" x1="0" x2="0" y1="${m.t}" y2="${m.t+ih}" stroke="var(--ink2)" visibility="hidden"/><rect id="hits" x="${m.l}" y="${m.t}" width="${iw}" height="${ih}" fill="transparent"/>`;
   const tg=`<div class="seg sm" role="group">${[['dia','Venta por día'],['acum','Avance acumulado']].map(([id,n])=>`<button data-cm="${id}" aria-pressed="${cm===id}">${n}</button>`).join('')}</div>`;
-  const chip=(L?`<button class="btn ghost" data-calls="1" style="padding:4px 10px">${calls?'☑':'☐'} Llamadas</button>`:'')+(cm==='acum'&&hasCli(r)?`<button class="btn ghost" data-cli="1" style="padding:4px 10px">${st.cli!==false?'☑':'☐'} Clientes</button>`:'');
+  const chip=(L?`<button class="btn ghost" data-calls="1" style="padding:4px 10px">${calls?'☑':'☐'} Llamadas</button>`:'')+(hasCli(r)?`<button class="btn ghost" data-cli="1" style="padding:4px 10px">${st.cli!==false?'☑':'☐'} Clientes</button>`:'');
   return `<div class="panel chartp"><div class="cols2" style="margin-bottom:4px"><h2><span class="gname"><i class="dot" style="background:${col}"></i>${r.n}</span> <span style="font-weight:400;color:var(--muted)">· ${cm==='dia'?'venta por día contra su objetivo diario':'avance acumulado contra su objetivo del mes'}</span></h2><div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">${chip}${tg}<button class="btn ghost" data-clear="1" style="padding:4px 10px">Ver todos</button></div></div>
-  <div class="legend">${leg}</div><div class="chartbox"><svg class="chart" viewBox="0 0 ${W} ${H}" role="img">${g}</svg></div></div>`
+  <div class="legend">${leg}</div><div class="chartbox" id="cb"><svg class="chart" viewBox="0 0 ${W} ${H}" role="img">${g}</svg><div class="tip" id="tip" hidden></div></div></div>`
+}
+function bindSel(){
+  const hit=$('#hits');if(!hit||!st.sel||!selRow())return;
+  const G=selGeom(),{r,L,cm,m,iw,W}=G,svg=hit.ownerSVGElement,cb=$('#cb'),tip=$('#tip'),xh=$('#xhs'),cut=st.cut,od=r.o/HAB;
+  const row=(a,b)=>`<div><span>${a}</span><span>${b}</span></div>`;
+  const lastCl=d=>{if(!r.cl)return null;for(let i=d-1;i>=0;i--)if(r.cl.d[i]!=null)return r.cl.d[i];return null};
+  hit.addEventListener('mousemove',e=>{
+    const b=svg.getBoundingClientRect(),k=W/b.width,vx=(e.clientX-b.left)*k;
+    let d=cm==='dia'?Math.floor((vx-m.l)/(iw/HAB))+1:Math.round((vx-m.l)/iw*HAB);d=Math.max(1,Math.min(cut,d));
+    const cx=cm==='dia'?m.l+(d-.5)*iw/HAB:m.l+d/HAB*iw,v=r.d[d-1]||0,acc=sumTo(r,d);
+    xh.setAttribute('x1',cx);xh.setAttribute('x2',cx);xh.setAttribute('visibility','visible');tip.hidden=false;
+    let h=`<b>Día ${d}</b>`;
+    if(cm==='dia')h+=row('Venta del día',money(v)+' · '+pc(v/od))+row('Objetivo diario',money(od))+row('Acumulado del mes',money(acc)+' · '+pc(acc/r.o));
+    else h+=row('Venta acumulada',money(acc)+' · '+pc(acc/r.o))+row('Ruta ideal',money(r.o*d/HAB)+' · '+pc(d/HAB))+row('Contra el ritmo',sgn(acc-r.o*d/HAB));
+    if(L){const x=L.d[d-1],ac=L.d.slice(0,d).reduce((a,q)=>a+(q||0),0);
+      h+=cm==='dia'?row('Llamadas del día',x==null?'sin capturar':x+' de '+L.m+(x>=L.m?' ✔':'')):row('Llamadas acumuladas',ac.toLocaleString('es-MX')+' · '+pc(ac/(L.m*HAB))+' de la meta del mes')}
+    if(hasCli(r)){const c=lastCl(d);h+=row('Clientes con compra',c==null?'sin capturar':c+' de '+r.cl.asig+' · '+pc(c/r.cl.asig))}
+    tip.innerHTML=h;
+    const x=cx/k,tw=tip.offsetWidth;let left=x+14;if(left+tw>cb.clientWidth)left=x-tw-14;tip.style.left=Math.max(0,left)+'px';tip.style.top='6px';
+  });
+  hit.addEventListener('mouseleave',()=>{tip.hidden=true;xh.setAttribute('visibility','hidden')});
 }
 
 function callsTable(list){
@@ -492,7 +525,7 @@ function render(){
   head();
   const v=$('#view');
   v.innerHTML=st.tab==='tablero'?tablero():st.tab==='captura'?captura():st.tab==='config'?config():historial();
-  if(st.tab==='tablero')bindChart();
+  if(st.tab==='tablero'){bindChart();bindSel()}
   if(st.tab==='captura')capRecalc();
 }
 const taps=[];
