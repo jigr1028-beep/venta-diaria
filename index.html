@@ -202,7 +202,7 @@ function calc(r,cut){
   const od=r.o/HAB, acum=sumTo(r,cut), oa=od*cut, last=r.d[cut-1]||0;
   return {od,acum,oa,last,pl:od?last/od:0,dif:acum-oa,ritmo:oa?acum/oa:0,avg:cut?acum/cut:0,pm:r.o?acum/r.o:0}
 }
-const medal=c=>{const p=c.od>0?c.last/c.od:0;return p>=2?['🏆','Más del doble del objetivo diario']:p>=1.5?['🔥','150% o más del objetivo diario']:c.last>0&&c.last>=c.od-0.005?['⭐','Cumplió el objetivo diario']:null};
+const medal=c=>{const p=c.od>0?c.last/c.od:0;return p>=2?['🏆','Más del doble del objetivo diario']:p>=1.5?['🚀','150% o más del objetivo diario']:c.last>0&&c.last>=c.od-0.005?['⭐','Cumplió el objetivo diario']:null};
 const stat=x=>x>=1?['En ritmo','ok']:x>=.8?['Cerca','mid']:['Rezagado','bad'];
 const ICON={ok:'<svg viewBox="0 0 12 12"><path d="M2 6.5l2.6 2.6L10 3.4" fill="none" stroke="var(--good)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
  mid:'<svg viewBox="0 0 12 12"><circle cx="6" cy="6" r="4.5" fill="none" stroke="var(--warn)" stroke-width="2"/></svg>',
@@ -404,7 +404,7 @@ function execTable(){
     const tn=list.reduce((a,x)=>a+need(x.c),0);
     body+=`<tr class="tot"><td>Total ${s.name}</td><td>${money(T.o)}</td><td>${money(T.last)}</td><td>${pc(T.pl)}</td><td>${YN(T.last>=T.od)}</td><td>${money(T.acum)}</td>
      <td><span class="pb">${pc(T.pm)}<i><s style="width:${Math.min(T.pm,1)*100}%;background:${s.c}"></s></i></span></td><td class="${T.dif<0?'neg':'pos'}">${sgn(T.dif)}</td><td>${money(T.avg)}</td>${ty?`<td>${rem>0?Math.ceil(tn).toLocaleString('es-MX'):'—'}</td><td>${Math.round(T.avg/COSTO).toLocaleString('es-MX')}</td>`:''}<td>${pill(T.ritmo)}</td></tr>`;
-    const hint=k===0?`⭐ Cumplió el objetivo del día · 🔥 Vendió 150% o más del objetivo · 🏆 Vendió el doble o más del objetivo · Haz clic en un ejecutivo para ver su avance arriba`:'';
+    const hint=k===0?`⭐ Cumplió el objetivo del día · 🚀 Vendió 150% o más del objetivo · 🏆 Vendió el doble o más del objetivo · Haz clic en un ejecutivo para ver su avance arriba`:'';
     const lh=ty?`<th class="w" title="Lo que falta del objetivo ÷ días hábiles restantes ÷ costo promedio de llanta">Llantas/día necesarias</th><th class="w" title="Promedio diario vendido ÷ costo promedio de llanta">Llantas/día vendidas</th>`:'';
     return `<div class="panel"><h2><span class="gname"><i class="dot" style="background:${s.c}"></i>${s.name}</span></h2>
     <div class="hint">${hint}${ty?` Llantas calculadas con costo promedio de ${money(COSTO)} (editable en Configuración).`:''}</div>
