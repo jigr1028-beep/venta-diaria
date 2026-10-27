@@ -8,7 +8,7 @@
 :root{
   --bg:#ffffff; --surface:#ffffff; --ink:#212529; --ink2:#4a5360; --muted:#737d8a;
   --line:#e6e9ee; --line2:#dee2e6; --soft:#f3f5f8;
-  --s1:#2a78d6; --s2:#eb6834; --s1t:rgba(42,120,214,.12); --s2t:rgba(235,104,52,.12);
+  --s1:#2a78d6; --s2:#eb6834; --s1t:rgba(42,120,214,.12); --s2t:rgba(235,104,52,.12); --s3:#7b4fd1; --s3t:rgba(123,79,209,.12);
   --good:#0ca30c; --warn:#fab219; --crit:#d03b3b; --goodtxt:#006300; --crittxt:#a82727;
   --ring:rgba(15,23,34,.10); --goodbg:rgba(12,163,12,.14); --critbg:rgba(208,59,59,.13);
   --font:"Ubuntu",system-ui,-apple-system,"Segoe UI",sans-serif; --blue:#0652ca; --navy:#042c53; --navytxt:#7fb2f0;
@@ -16,12 +16,12 @@
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
   --bg:#0d1117; --surface:#161b23; --ink:#f2f5f9; --ink2:#b7c0cd; --muted:#8a94a3;
   --line:#262d38; --line2:#364050; --soft:#1d2430;
-  --s1:#3987e5; --s2:#d95926; --s1t:rgba(57,135,229,.18); --s2t:rgba(217,89,38,.2);
+  --s1:#3987e5; --s2:#d95926; --s1t:rgba(57,135,229,.18); --s2t:rgba(217,89,38,.2); --s3:#9a74e8; --s3t:rgba(154,116,232,.2);
   --goodtxt:#35c235; --crittxt:#ef7a7a; --ring:rgba(255,255,255,.10); --goodbg:rgba(12,163,12,.22); --critbg:rgba(208,59,59,.25); color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#0d1117; --surface:#161b23; --ink:#f2f5f9; --ink2:#b7c0cd; --muted:#8a94a3;
   --line:#262d38; --line2:#364050; --soft:#1d2430;
-  --s1:#3987e5; --s2:#d95926; --s1t:rgba(57,135,229,.18); --s2t:rgba(217,89,38,.2);
+  --s1:#3987e5; --s2:#d95926; --s1t:rgba(57,135,229,.18); --s2t:rgba(217,89,38,.2); --s3:#9a74e8; --s3t:rgba(154,116,232,.2);
   --goodtxt:#35c235; --crittxt:#ef7a7a; --ring:rgba(255,255,255,.10); --goodbg:rgba(12,163,12,.22); --critbg:rgba(208,59,59,.25); color-scheme:dark}
 *{box-sizing:border-box}
 body{margin:0}
@@ -131,7 +131,9 @@ const EMBED={"version": 1, "updated": "2026-10-01T00:00:00.000Z", "months": {"20
 const MNAMES=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 const SEGS=[
  {id:'nac',name:'Nacionales',c:'var(--s1)',t:'var(--s1t)',rows:[]},
- {id:'ty',name:'TYCMORS',c:'var(--s2)',t:'var(--s2t)',rows:[]}];
+ {id:'ty',name:'TYCMORS',c:'var(--s2)',t:'var(--s2t)',rows:[]},
+ {id:'my',name:'Mayoreo',c:'var(--s3)',t:'var(--s3t)',rows:[]}];
+const hasX=s=>s.id==='ty'||s.id==='my';
 let HAB=25,COSTO=3500,MKEY='',MONTHS={},SRV=EMBED,DB=null;
 const LS='llyasa_venta_diaria_';
 const lsGet=k=>{try{return localStorage.getItem(LS+k)}catch(e){return null}};
@@ -141,7 +143,7 @@ const mlabel=k=>{const [y,m]=k.split('-');return MNAMES[+m-1]+' '+y};
 const pad31=a=>{while(a.length<31)a.push(null);return a};
 function newMonth(from,key){
   const [y,m]=key.split('-').map(Number),src=MONTHS[from],cp=a=>a.map(r=>{const x={n:r.n,o:r.o,d:pad31([])};if(r.ll)x.ll={m:r.ll.m,d:pad31([])};if(r.cl)x.cl={asig:r.cl.asig,d:pad31([])};return x});
-  MONTHS[key]={hab:habCalc(y,m-1),costo:src.costo,nac:cp(src.nac),ty:cp(src.ty)};
+  MONTHS[key]={hab:habCalc(y,m-1),costo:src.costo,nac:cp(src.nac),ty:cp(src.ty),my:cp(src.my||[])};
 }
 const nextKey=k=>{let [y,m]=k.split('-').map(Number);m++;if(m>12){m=1;y++}return y+'-'+String(m).padStart(2,'0')};
 const lastDay=()=>{let m=0;SEGS.forEach(s=>s.rows.forEach(r=>r.d.forEach((v,i)=>{if(v!==null&&i+1>m)m=i+1})));return m};
@@ -150,11 +152,12 @@ function pickDB(){
   let draft=null;try{draft=JSON.parse(lsGet('draft')||'null')}catch(e){}
   if(st.admin){const base=(draft&&draft.months&&draft.updated>SRV.updated)?draft:SRV;st.dirty=base!==SRV&&base.updated!==lsGet('pub');DB=JSON.parse(JSON.stringify(base))}
   else{DB=SRV;st.dirty=false}
+  Object.values(DB.months).forEach(M=>{if(!M.my)M.my=[];M.nac=M.nac.filter(x=>{if(/^(mayoreo|ventas22)/i.test(x.n)){M.my.push(x);return false}return true})});
   MONTHS=DB.months;st.h=JSON.stringify(DB.months);
 }
 function touch(){DB.updated=new Date().toISOString();lsSet('draft',JSON.stringify(DB));st.dirty=true}
 function setMonth(k){
-  MKEY=k;const M=MONTHS[k];HAB=M.hab;COSTO=M.costo;SEGS[0].rows=M.nac;SEGS[1].rows=M.ty;
+  MKEY=k;const M=MONTHS[k];HAB=M.hab;COSTO=M.costo;SEGS[0].rows=M.nac;SEGS[1].rows=M.ty;SEGS[2].rows=M.my;
   st.sel=null;st.cut=lastDay();st.capDay=Math.min(HAB,st.cut||1);
 }
 function startMonth(){const ks=Object.keys(MONTHS).sort(),n=new Date(),nk=n.getFullYear()+'-'+String(n.getMonth()+1).padStart(2,'0');return MONTHS[nk]?nk:ks[ks.length-1]}
@@ -298,16 +301,20 @@ function habNet(y,m){return habCalc(y,m)-nolabList().filter(d=>new Date(y,m,d).g
 function dateOf(n){const [y,m]=MKEY.split('-').map(Number);let c=0;for(let d=1;d<=31;d++){const dt=new Date(y,m-1,d);if(dt.getMonth()!==m-1)break;if(dt.getDay()!==0&&!nolabList().includes(d)){c++;if(c===n)return dt}}return null}
 const dlab=(n,wd)=>{const dt=dateOf(n);return dt?(wd?DNOM[dt.getDay()]+' ':'')+dt.getDate()+' '+MABR[dt.getMonth()]:''};
 const dsh=n=>{const dt=dateOf(n);return dt?DNOM[dt.getDay()]+' '+dt.getDate():''};
+const sabF=()=>{const v=MONTHS[MKEY]&&MONTHS[MKEY].sabf;return v==null?0.5:v};
+const lw=n=>{const dt=dateOf(n);return dt&&dt.getDay()===6?sabF():1};
+const lmD=(L,n)=>Math.ceil(L.m*lw(n)-1e-9);
+const lmCum=(L,n)=>{let s=0;for(let i=1;i<=n;i++)s+=lmD(L,i);return s};
 const hasCalls=r=>!!(r.ll&&r.ll.m>0);
 const hasCli=r=>!!(r.cl&&r.cl.asig>0);
 
-function selRow(){if(!st.sel)return null;const [sid,i]=st.sel.split(':'),s=SEGS.find(x=>x.id===sid),r=s&&s.rows[+i];return r?{s,r,ty:sid==='ty'}:null}
+function selRow(){if(!st.sel)return null;const [sid,i]=st.sel.split(':'),s=SEGS.find(x=>x.id===sid),r=s&&s.rows[+i];return r?{s,r,ty:hasX(s)}:null}
 function kpisSel(){
   const {s,r,ty}=selRow(),c=calc(r,st.cut),proy=c.acum/st.cut*HAB;
   const L=ty&&hasCalls(r)?r.ll:null,hoy=L?(L.d[st.cut-1]||0):0;
   const k=(l,v,n,cls='')=>`<div class="kpi"><div class="l">${l}</div><div class="v ${cls}">${v}</div><div class="n">${n}</div></div>`;
   const t4=L?(hasCli(r)?k('Clientes con compra',(r.cl.d[st.cut-1]||0)+' <span style="font-size:15px;color:var(--muted)">de '+r.cl.asig+'</span>','Penetración '+pc((r.cl.d[st.cut-1]||0)/r.cl.asig,1)+' de su cartera'):''):k('Proyección de cierre',mm(proy),pc(proy/r.o)+' del objetivo al ritmo actual');
-  const t3=L?(()=>{const ac=L.d.slice(0,st.cut).reduce((a,q)=>a+(q||0),0),mes=L.m*HAB,esp=L.m*st.cut;return k('Llamadas del mes · día '+st.cut,ac.toLocaleString('es-MX')+' <span style="font-size:15px;color:var(--muted)">de '+mes.toLocaleString('es-MX')+'</span>',pc(ac/mes,1)+' de su meta del mes · hoy '+hoy+' de '+L.m,ac>=esp?'pos':'neg')})():k('Venta del día '+st.cut+' · '+dlab(st.cut),mm(c.last),pc(c.pl)+' del objetivo diario ('+mm(c.od)+')');
+  const t3=L?(()=>{const ac=L.d.slice(0,st.cut).reduce((a,q)=>a+(q||0),0),mes=lmCum(L,HAB),esp=lmCum(L,st.cut);return k('Llamadas del mes · día '+st.cut,ac.toLocaleString('es-MX')+' <span style="font-size:15px;color:var(--muted)">de '+mes.toLocaleString('es-MX')+'</span>',pc(ac/mes,1)+' de su meta del mes · hoy '+hoy+' de '+lmD(L,st.cut),ac>=esp?'pos':'neg')})():k('Venta del día '+st.cut+' · '+dlab(st.cut),mm(c.last),pc(c.pl)+' del objetivo diario ('+mm(c.od)+')');
   return `<div class="kpis">${k('Venta acumulada',mm(c.acum),'de '+mm(r.o)+' · '+pc(c.pm,1)+' del objetivo')}
   ${k('Contra el ritmo',(c.dif<0?'−':'+')+mm(Math.abs(c.dif)),'objetivo a hoy '+mm(c.oa)+' · cumplimiento '+pc(c.ritmo,1),c.dif<0?'neg':'pos')}
   ${t3}${t4}</div>`
@@ -331,10 +338,10 @@ function chartSel(){
     if(calls){
       const cmx=Math.max(L.m*1.3,...L.d.slice(0,cut).map(v=>v||0))*1.08,Yc=v=>m.t+ih-v/cmx*ih,cs=Math.ceil(cmx/4/5)*5;
       for(let v=cs;v<=cmx;v+=cs)if(Math.abs(Yc(v)-Yc(L.m))>13)g+=`<text x="${m.l+iw+6}" y="${Yc(v)+4}" font-size="11" fill="var(--ink2)">${v}</text>`;
-      g+=`<line x1="${m.l}" x2="${m.l+iw}" y1="${Yc(L.m)}" y2="${Yc(L.m)}" stroke="var(--ink2)" stroke-width="1.2" stroke-dasharray="2 4"/><text x="${m.l+iw+6}" y="${Yc(L.m)+4}" font-size="11" font-weight="700" fill="var(--ink)">Meta ${L.m}</text>`;
+      g+=`<path d="${Array.from({length:HAB},(_,i)=>`M${X(i)+2},${Yc(lmD(L,i+1))}H${X(i+1)-2}`).join('')}" fill="none" stroke="var(--ink2)" stroke-width="1.6" stroke-dasharray="2 3"/><text x="${m.l+iw+6}" y="${Yc(L.m)+4}" font-size="11" font-weight="700" fill="var(--ink)">Meta ${L.m}</text>`;
       g+=`<polyline fill="none" stroke="var(--ink)" stroke-width="2" stroke-linejoin="round" points="${L.d.slice(0,cut).map((v,i)=>v==null?null:(X(i)+bw/2)+','+Yc(v)).filter(Boolean).join(' ')}"/>`;
-      L.d.slice(0,cut).forEach((v,i)=>{if(v==null)return;const ok=v>=L.m;g+=`<circle cx="${X(i)+bw/2}" cy="${Yc(v)}" r="3.6" fill="${ok?'var(--good)':'var(--crit)'}" stroke="var(--surface)" stroke-width="1.5"/>`});
-      leg+=`<span><i class="dot" style="background:var(--good)"></i>Llamadas (eje derecho): cumplió meta</span><span><i class="dot" style="background:var(--crit)"></i>no cumplió</span>`}
+      L.d.slice(0,cut).forEach((v,i)=>{if(v==null)return;const ok=v>=lmD(L,i+1);g+=`<circle cx="${X(i)+bw/2}" cy="${Yc(v)}" r="3.6" fill="${ok?'var(--good)':'var(--crit)'}" stroke="var(--surface)" stroke-width="1.5"/>`});
+      leg+=`<span><i class="dot" style="background:var(--good)"></i>Llamadas (eje derecho): cumplió meta${sabF()<1?' (sábado: '+Math.round(sabF()*100)+'% de la meta)':''}</span><span><i class="dot" style="background:var(--crit)"></i>no cumplió</span>`}
     if(cli){
       const C=r.cl,pts=C.d.slice(0,cut).map((v,i)=>v==null?null:[i,v]).filter(Boolean);
       if(pts.length){const cmax=Math.max(5,pts[pts.length-1][1]*1.25),Yk=v=>m.t+ih-v/cmax*ih;
@@ -344,7 +351,7 @@ function chartSel(){
       leg+=`<span><i class="dot" style="background:var(--s1);border-radius:2px"></i>Clientes con compra (acumulado del mes)</span>`}
   }else{
     const acc=[0],cal=[0];for(let d=1;d<=cut;d++){acc.push(acc[d-1]+(r.d[d-1]||0));cal.push(cal[d-1]+(L?(L.d[d-1]||0):0))}
-    const pv=acc.map(v=>v/r.o),pcl=L?cal.map(v=>v/(L.m*HAB)):[],pen=(cli?[0,...(()=>{let p=0;return r.cl.d.slice(0,cut).map(v=>{if(v!=null)p=v;return p/r.cl.asig})})()]:[]),proy=pv[cut]/cut*HAB;
+    const pv=acc.map(v=>v/r.o),pcl=L?cal.map(v=>v/lmCum(L,HAB)):[],pen=(cli?[0,...(()=>{let p=0;return r.cl.d.slice(0,cut).map(v=>{if(v!=null)p=v;return p/r.cl.asig})})()]:[]),proy=pv[cut]/cut*HAB;
     const ymax=Math.max(1,proy,pv[cut],...(calls?pcl:[0]),...(cli?pen:[0]))*1.06,Y=v=>m.t+ih-v/ymax*ih;
     for(let v=0;v<=ymax+1e-9;v+=.25)g+=`<line x1="${m.l}" x2="${m.l+iw}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--line)"/><text x="${m.l-8}" y="${Y(v)+4}" text-anchor="end" font-size="11" fill="var(--muted)">${pc(v)}</text>`;
     for(let d=5;d<=HAB;d+=5)g+=`<text x="${X(d)}" y="${H-7}" text-anchor="middle" font-size="11" fill="var(--muted)">${d}</text>`;
@@ -378,7 +385,7 @@ function bindSel(){
     if(cm==='dia')h+=row('Venta del día',money(v)+' · '+pc(v/od))+row('Objetivo diario',money(od))+row('Acumulado del mes',money(acc)+' · '+pc(acc/r.o));
     else h+=row('Venta acumulada',money(acc)+' · '+pc(acc/r.o))+row('Ruta ideal',money(r.o*d/HAB)+' · '+pc(d/HAB))+row('Contra el ritmo',sgn(acc-r.o*d/HAB));
     if(L){const x=L.d[d-1],ac=L.d.slice(0,d).reduce((a,q)=>a+(q||0),0);
-      h+=cm==='dia'?row('Llamadas del día',x==null?'sin capturar':x+' de '+L.m+(x>=L.m?' ✔':'')):row('Llamadas acumuladas',ac.toLocaleString('es-MX')+' · '+pc(ac/(L.m*HAB))+' de la meta del mes')}
+      h+=cm==='dia'?row('Llamadas del día',x==null?'sin capturar':x+' de '+lmD(L,d)+(x>=lmD(L,d)?' ✔':'')):row('Llamadas acumuladas',ac.toLocaleString('es-MX')+' · '+pc(ac/lmCum(L,HAB))+' de la meta del mes')}
     if(hasCli(r)){const c=lastCl(d);h+=row('Clientes con compra',c==null?'sin capturar':c+' de '+r.cl.asig+' · '+pc(c/r.cl.asig))}
     tip.innerHTML=h;
     const x=cx/k,tw=tip.offsetWidth;let left=x+14;if(left+tw>cb.clientWidth)left=x-tw-14;tip.style.left=Math.max(0,left)+'px';tip.style.top='6px';
@@ -386,20 +393,20 @@ function bindSel(){
   hit.addEventListener('mouseleave',()=>{tip.hidden=true;xh.setAttribute('visibility','hidden')});
 }
 
-function callsTable(list){
+function callsTable(list,seg){
   const info=r=>{const L=r.ll||{m:0,d:[]},C=r.cl||{asig:0,d:[]},hoy=L.d[st.cut-1]||0,ac=L.d.slice(0,st.cut).reduce((a,b)=>a+(b||0),0),cc=C.d[st.cut-1]||0;return {L,C,hoy,ac,cc}};
-  const bar=p=>`<span class="pb">${pc(p)}<i><s style="width:${Math.min(Math.max(p,0),1)*100}%;background:var(--s2)"></s></i></span>`;
-  const rows=list.map(({r})=>{const {L,C,hoy,ac,cc}=info(r),idx=SEGS[1].rows.indexOf(r),hc=L.m>0,hl=C.asig>0;
-    return `<tr class="pick ${st.sel==='ty:'+idx?'on':''}" data-sel="ty:${idx}"><td class="name" title="${r.n}">${r.n}</td><td>${hc?L.m:'—'}</td><td>${hc?hoy:'—'}</td><td>${hc?YN(hoy>=L.m):'—'}</td><td>${hc?bar(ac/(L.m*st.cut)):'—'}</td><td>${hl?C.asig:'—'}</td><td>${hl?cc:'—'}</td><td>${hl?bar(cc/C.asig):'—'}</td><td>${hl?C.asig-cc:'—'}</td></tr>`}).join('');
-  const T=list.reduce((a,{r})=>{const x=info(r);if(x.L.m>0){a.m+=x.L.m;a.h+=x.hoy;a.ac+=x.ac}if(x.C.asig>0){a.A+=x.C.asig;a.c+=x.cc}return a},{m:0,h:0,ac:0,A:0,c:0});
+  const bar=p=>`<span class="pb">${pc(p)}<i><s style="width:${Math.min(Math.max(p,0),1)*100}%;background:${seg.c}"></s></i></span>`;
+  const rows=list.map(({r})=>{const {L,C,hoy,ac,cc}=info(r),idx=seg.rows.indexOf(r),hc=L.m>0,hl=C.asig>0;
+    return `<tr class="pick ${st.sel===seg.id+':'+idx?'on':''}" data-sel="${seg.id}:${idx}"><td class="name" title="${r.n}">${r.n}</td><td>${hc?lmD(L,st.cut):'—'}</td><td>${hc?hoy:'—'}</td><td>${hc?YN(hoy>=lmD(L,st.cut)):'—'}</td><td>${hc?bar(ac/lmCum(L,st.cut)):'—'}</td><td>${hl?C.asig:'—'}</td><td>${hl?cc:'—'}</td><td>${hl?bar(cc/C.asig):'—'}</td><td>${hl?C.asig-cc:'—'}</td></tr>`}).join('');
+  const T=list.reduce((a,{r})=>{const x=info(r);if(x.L.m>0){a.m+=lmD(x.L,st.cut);a.cm+=lmCum(x.L,st.cut);a.h+=x.hoy;a.ac+=x.ac}if(x.C.asig>0){a.A+=x.C.asig;a.c+=x.cc}return a},{m:0,cm:0,h:0,ac:0,A:0,c:0});
   return `<h2 style="margin:20px 0 2px;font-size:14px">Llamadas y cartera de clientes</h2><div class="hint">Llamadas: meta fija por ejecutivo. Clientes con compra: clientes de su cartera que ya compraron en el mes, al corte del día ${st.cut}.</div>
-  <div class="scroll"><table><thead><tr><th>Ejecutivo</th><th>Meta llamadas/día</th><th>Llamadas día ${st.cut} <span style="font-weight:400">· ${dlab(st.cut)}</span></th><th>Cumple hoy</th><th>% meta de llamadas del mes</th><th>Clientes asignados</th><th>Con compra</th><th>Penetración</th><th>Sin compra</th></tr></thead><tbody>${rows}<tr class="tot"><td>Total TYCMORS</td><td>${T.m||'—'}</td><td>${T.m?T.h:'—'}</td><td>${T.m?YN(T.h>=T.m):'—'}</td><td>${T.m?pc(T.ac/(T.m*st.cut)):'—'}</td><td>${T.A||'—'}</td><td>${T.A?T.c:'—'}</td><td>${T.A?pc(T.c/T.A):'—'}</td><td>${T.A?T.A-T.c:'—'}</td></tr></tbody></table></div>`
+  <div class="scroll"><table><thead><tr><th>Ejecutivo</th><th>Meta llamadas del día</th><th>Llamadas día ${st.cut} <span style="font-weight:400">· ${dlab(st.cut)}</span></th><th>Cumple hoy</th><th>% meta de llamadas del mes</th><th>Clientes asignados</th><th>Con compra</th><th>Penetración</th><th>Sin compra</th></tr></thead><tbody>${rows}<tr class="tot"><td>Total ${seg.name}</td><td>${T.m||'—'}</td><td>${T.m?T.h:'—'}</td><td>${T.m?YN(T.h>=T.m):'—'}</td><td>${T.m?pc(T.ac/T.cm):'—'}</td><td>${T.A||'—'}</td><td>${T.A?T.c:'—'}</td><td>${T.A?pc(T.c/T.A):'—'}</td><td>${T.A?T.A-T.c:'—'}</td></tr></tbody></table></div>`
 }
 function execTable(){
   const rem=HAB-st.cut;
   return visSegs().map((s,k)=>{
     if(!hasData(s))return `<div class="panel"><h2><span class="gname"><i class="dot" style="background:${s.c}"></i>${s.name}</span></h2><div class="hint" style="margin:0">Sin ventas capturadas en ${mlabel(MKEY)}.</div></div>`;
-    const T=segTotals(s,st.cut),ty=s.id==='ty';
+    const T=segTotals(s,st.cut),ty=s.id==='ty',ex=hasX(s);
     let list=s.rows.map(r=>({r,c:calc(r,st.cut)}));
     if(st.sort==='ritmo')list.sort((a,b)=>b.c.ritmo-a.c.ritmo);
     const need=c=>rem>0?Math.max(0,(c.od*HAB-c.acum)/rem)/COSTO:0;
@@ -414,7 +421,7 @@ function execTable(){
     const lh=ty?`<th class="w" title="Lo que falta del objetivo ÷ días hábiles restantes ÷ costo promedio de llanta">Llantas/día necesarias</th><th class="w" title="Promedio diario vendido ÷ costo promedio de llanta">Llantas/día vendidas</th>`:'';
     return `<div class="panel"><h2><span class="gname"><i class="dot" style="background:${s.c}"></i>${s.name}</span></h2>
     <div class="hint">${hint}${ty?` Llantas calculadas con costo promedio de ${money(COSTO)} (editable en Configuración).`:''}</div>
-    <div class="scroll"><table><thead><tr><th>Ejecutivo</th><th>Obj. mensual</th><th>Venta día ${st.cut} <span style="font-weight:400">· ${dlab(st.cut)}</span></th><th>% obj. diario</th><th>Cumple hoy</th><th>Acumulado</th><th>% avance mes</th><th>Dif. vs ritmo</th><th>Prom. diario</th>${lh}<th>Ritmo del mes</th></tr></thead><tbody>${body}</tbody></table></div>${ty&&list.some(x=>hasCalls(x.r)||hasCli(x.r))?callsTable(list):''}</div>`}).join('')
+    <div class="scroll"><table><thead><tr><th>Ejecutivo</th><th>Obj. mensual</th><th>Venta día ${st.cut} <span style="font-weight:400">· ${dlab(st.cut)}</span></th><th>% obj. diario</th><th>Cumple hoy</th><th>Acumulado</th><th>% avance mes</th><th>Dif. vs ritmo</th><th>Prom. diario</th>${lh}<th>Ritmo del mes</th></tr></thead><tbody>${body}</tbody></table></div>${ex&&list.some(x=>hasCalls(x.r)||hasCli(x.r))?callsTable(list,s):''}</div>`}).join('')
 }
 function tablero(){
   const ld=lastDay();
@@ -430,12 +437,12 @@ function captura(){
     const prev=sumTo(r,day-1),v=r.d[day-1],od=r.o/HAB;
     return `<tr data-i="${i}" data-prev="${prev}"><td class="name">${r.n}</td><td>${money(od)}</td><td>${money(prev)}</td>
     <td><input class="num cap" id="cap${i}" inputmode="decimal" value="${v===null?'':Math.round((prev+v)*100)/100}" placeholder="Acumulado CRM" aria-label="Acumulado CRM ${r.n}"></td>
-    <td class="vd">—</td><td class="pd">—</td><td class="sd"></td>${s.id==='ty'?`<td><input class="num capll" inputmode="numeric" value="${r.ll&&r.ll.d[day-1]!=null?r.ll.d[day-1]:''}" placeholder="Llamadas" aria-label="Llamadas del día ${r.n}" style="width:90px"></td><td><input class="num capcl" inputmode="numeric" value="${r.cl&&r.cl.d[day-1]!=null?r.cl.d[day-1]:''}" placeholder="Acum. mes" aria-label="Clientes con compra ${r.n}" style="width:90px"></td>`:''}</tr>`}).join('');
+    <td class="vd">—</td><td class="pd">—</td><td class="sd"></td>${hasX(s)?`<td><input class="num capll" inputmode="numeric" value="${r.ll&&r.ll.d[day-1]!=null?r.ll.d[day-1]:''}" placeholder="Llamadas" aria-label="Llamadas del día ${r.n}" style="width:90px"></td><td><input class="num capcl" inputmode="numeric" value="${r.cl&&r.cl.d[day-1]!=null?r.cl.d[day-1]:''}" placeholder="Acum. mes" aria-label="Clientes con compra ${r.n}" style="width:90px"></td>`:''}</tr>`}).join('');
   return `<div class="bar"><div class="seg" role="group" aria-label="Segmento a capturar">${SEGS.map(x=>`<button data-capseg="${x.id}" aria-pressed="${x.id===st.capSeg}"><span class="dot" style="background:${x.c}"></span>${x.name}</button>`).join('')}</div>
    <label class="field">Día hábil <select id="capday">${Array.from({length:HAB},(_,i)=>`<option value="${i+1}" ${i+1===day?'selected':''}>Día hábil ${i+1} · ${dlab(i+1,1)}</option>`).join('')}</select></label></div>
-   <div class="note">Captura el <b>acumulado del mes</b> que te da el CRM. La venta del día se calcula sola restando el acumulado del día anterior. Los números del día ${day} ya están cargados para que veas la resta.${s.id==='ty'?' En TYCMORS captura también las <b>llamadas del día</b> (total de ese día) y los <b>clientes con compra</b> (acumulado del mes).':''}</div>
-   <div class="panel"><div class="scroll"><table><thead><tr><th>Ejecutivo</th><th>Obj. diario</th><th>Acumulado día ${day-1}</th><th>Acumulado CRM día ${day} (${dlab(day,1)})</th><th>Venta del día</th><th>% obj. diario</th><th>Revisión</th>${s.id==='ty'?'<th>Llamadas del día</th><th>Clientes con compra (acum. mes)</th>':''}</tr></thead><tbody>${rows}
-   <tr class="tot"><td>Total ${s.name}</td><td id="tod"></td><td id="tprev"></td><td id="tacum"></td><td id="tvd"></td><td id="tpd"></td><td></td>${s.id==='ty'?'<td></td><td></td>':''}</tr></tbody></table></div>
+   <div class="note">Captura el <b>acumulado del mes</b> que te da el CRM. La venta del día se calcula sola restando el acumulado del día anterior. Los números del día ${day} ya están cargados para que veas la resta.${hasX(s)?' En este segmento captura también las <b>llamadas del día</b> (total de ese día) y los <b>clientes con compra</b> (acumulado del mes).':''}</div>
+   <div class="panel"><div class="scroll"><table><thead><tr><th>Ejecutivo</th><th>Obj. diario</th><th>Acumulado día ${day-1}</th><th>Acumulado CRM día ${day} (${dlab(day,1)})</th><th>Venta del día</th><th>% obj. diario</th><th>Revisión</th>${hasX(s)?'<th>Llamadas del día</th><th>Clientes con compra (acum. mes)</th>':''}</tr></thead><tbody>${rows}
+   <tr class="tot"><td>Total ${s.name}</td><td id="tod"></td><td id="tprev"></td><td id="tacum"></td><td id="tvd"></td><td id="tpd"></td><td></td>${hasX(s)?'<td></td><td></td>':''}</tr></tbody></table></div>
    <div class="cols2" style="margin:14px 0 0"><span class="hint" id="capmsg" style="margin:0"></span><div style="display:flex;gap:8px"><button class="btn ghost" id="capclr">Limpiar día</button><button class="btn" id="capsave">Guardar día ${day} (${dlab(day)})</button></div></div></div>`
 }
 function capRecalc(){
@@ -468,7 +475,7 @@ function capSave(){
     const i=+tr.dataset.i,raw=tr.querySelector('input').value.trim().replace(/,/g,'');
     s.rows[i].d[day-1]=raw===''?null:Math.max(0,parseFloat(raw)-(+tr.dataset.prev));
   });
-  if(s.id==='ty')document.querySelectorAll('#view tr[data-i]').forEach(tr=>{const rr=s.rows[+tr.dataset.i],a=tr.querySelector('.capll'),b=tr.querySelector('.capcl'),va=a.value.trim().replace(/,/g,''),vb=b.value.trim().replace(/,/g,'');
+  if(hasX(s))document.querySelectorAll('#view tr[data-i]').forEach(tr=>{const rr=s.rows[+tr.dataset.i],a=tr.querySelector('.capll'),b=tr.querySelector('.capcl'),va=a.value.trim().replace(/,/g,''),vb=b.value.trim().replace(/,/g,'');
     if(va!==''){rr.ll=rr.ll||{m:0,d:pad31([])};rr.ll.d[day-1]=Math.round(parseFloat(va))}else if(rr.ll)rr.ll.d[day-1]=null;
     if(vb!==''){rr.cl=rr.cl||{asig:0,d:pad31([])};rr.cl.d[day-1]=Math.round(parseFloat(vb))}else if(rr.cl)rr.cl.d[day-1]=null});
   const ld=lastDay();if(day>=st.cut&&day<=ld)st.cut=Math.max(st.cut,day);
@@ -500,6 +507,7 @@ function config(){
    <div class="bar" style="margin:0"><label class="field">Días hábiles <input class="num" id="hab" type="number" min="1" max="31" value="${HAB}" style="width:80px"></label>
    <button class="btn ghost" id="habcalc">Usar calculado (${calcd})</button>
    <label class="field">Costo promedio llanta de camión <input class="num" id="costo" inputmode="decimal" value="${COSTO}" style="width:100px"></label>
+   <label class="field">Llamadas en sábado (medio día) <span style="display:flex;align-items:center;gap:6px"><input class="num" id="sabf" inputmode="numeric" value="${Math.round(sabF()*100)}" style="width:70px"> % de la meta diaria</span></label>
    <span style="flex:1"></span><button class="btn" id="newmonth" ${MONTHS[nk]?'disabled style="opacity:.45"':''}>Crear ${mlabel(nk)}</button></div>
    <div style="margin-top:14px"><b style="font-size:13px">Días no hábiles de ${mlabel(MKEY)}</b> <span class="hint" style="margin:0">(feriados o días sin trabajo, además de los domingos). Al agregar uno, los días hábiles bajan solos y las fechas se recorren. Agrégalos antes de capturar los días siguientes.</span>
    <div class="bar" style="margin:8px 0 0"><label class="field">Fecha <input class="num" type="date" id="nolab_in" min="${MKEY}-01" max="${MKEY}-${String(new Date(y,mo,0).getDate()).padStart(2,'0')}" value="${MKEY}-01" style="width:160px;text-align:left"></label><button class="btn ghost" id="nolabadd">Agregar día no hábil</button>
@@ -508,11 +516,11 @@ function config(){
     const tot=s.rows.reduce((a,r)=>a+r.o,0);
     const rows=s.rows.map((r,i)=>`<tr data-seg="${s.id}" data-i="${i}"><td class="grip" draggable="true" title="Arrastra para mover" aria-hidden="true">⋮⋮</td><td>${i+1}</td>
       <td><input class="num nm" value="${r.n.replace(/"/g,'&quot;')}" aria-label="Nombre" style="width:230px"></td>
-      <td><input class="num ob" inputmode="decimal" value="${r.o}" aria-label="Objetivo mensual de ${r.n}" style="width:130px;text-align:right"></td><td>${money(r.o/HAB)}</td>${s.id==='ty'?`<td><input class="num lm" inputmode="numeric" value="${r.ll?r.ll.m:''}" placeholder="0" aria-label="Meta de llamadas por día de ${r.n}" style="width:90px;text-align:right"></td><td><input class="num ca" inputmode="numeric" value="${r.cl?r.cl.asig:''}" placeholder="0" aria-label="Clientes asignados de ${r.n}" style="width:90px;text-align:right"></td>`:''}
+      <td><input class="num ob" inputmode="decimal" value="${r.o}" aria-label="Objetivo mensual de ${r.n}" style="width:130px;text-align:right"></td><td>${money(r.o/HAB)}</td>${hasX(s)?`<td><input class="num lm" inputmode="numeric" value="${r.ll?r.ll.m:''}" placeholder="0" aria-label="Meta de llamadas por día de ${r.n}" style="width:90px;text-align:right"></td><td><input class="num ca" inputmode="numeric" value="${r.cl?r.cl.asig:''}" placeholder="0" aria-label="Clientes asignados de ${r.n}" style="width:90px;text-align:right"></td>`:''}
       <td class="mvc"><button class="btn ghost sm" data-mv="${s.id}:${i}:-1" aria-label="Subir ${r.n}" ${i===0?'disabled':''}>↑</button> <button class="btn ghost sm" data-mv="${s.id}:${i}:1" aria-label="Bajar ${r.n}" ${i===s.rows.length-1?'disabled':''}>↓</button></td></tr>`).join('');
     return `<div class="panel"><h2><span class="gname"><i class="dot" style="background:${s.c}"></i>${s.name}</span></h2><div class="hint">Arrastra el asa ⋮⋮ o usa las flechas para ordenar. Este orden se usa en el tablero, la captura y el historial.</div>
-     <div class="scroll"><table class="cfg"><thead><tr><th></th><th>#</th><th>Ejecutivo</th><th>Objetivo mensual</th><th>Objetivo diario</th>${s.id==='ty'?'<th>Meta llamadas/día</th><th>Clientes asignados</th>':''}<th>Mover</th></tr></thead><tbody>${rows}
-     <tr class="tot"><td></td><td></td><td>Total ${s.name}</td><td>${money(tot)}</td><td>${money(tot/HAB)}</td>${s.id==='ty'?`<td>${s.rows.reduce((a,x)=>a+(x.ll?x.ll.m:0),0)||''}</td><td>${s.rows.reduce((a,x)=>a+(x.cl?x.cl.asig:0),0)||''}</td>`:''}<td></td></tr></tbody></table></div></div>`}).join('');
+     <div class="scroll"><table class="cfg"><thead><tr><th></th><th>#</th><th>Ejecutivo</th><th>Objetivo mensual</th><th>Objetivo diario</th>${hasX(s)?'<th>Meta llamadas/día</th><th>Clientes asignados</th>':''}<th>Mover</th></tr></thead><tbody>${rows}
+     <tr class="tot"><td></td><td></td><td>Total ${s.name}</td><td>${money(tot)}</td><td>${money(tot/HAB)}</td>${hasX(s)?`<td>${s.rows.reduce((a,x)=>a+(x.ll?x.ll.m:0),0)||''}</td><td>${s.rows.reduce((a,x)=>a+(x.cl?x.cl.asig:0),0)||''}</td>`:''}<td></td></tr></tbody></table></div></div>`}).join('');
   const g=ghCfg()||{};
   const gh=`<div class="panel"><h2>Publicación en GitHub</h2><div class="hint">Con esto, Guardar día publica solo, sin descargar ni subir archivos. El token se guarda únicamente en este navegador.</div>
    <div class="bar" style="margin:0"><label class="field">Usuario<input class="num" id="gh_o" value="${g.o||''}" style="width:170px" autocomplete="off"></label>
@@ -579,6 +587,7 @@ document.addEventListener('change',e=>{
   const el=e.target;
   if(el.id==='monthsel'){setMonth(el.value);if(!st.admin)st.tab='tablero';render()}
   else if(el.id==='hab'){const v=Math.max(1,Math.min(31,parseInt(el.value)||HAB));MONTHS[MKEY].hab=HAB=v;if(st.capDay>HAB)st.capDay=HAB;render()}
+  else if(el.id==='sabf'){const v=parseFloat(el.value);if(v>=0&&v<=100)MONTHS[MKEY].sabf=v/100;render()}
   else if(el.id==='costo'){const v=parseFloat(el.value.replace(/,/g,''));if(v>0){MONTHS[MKEY].costo=COSTO=v}render()}
   else if(el.classList.contains('lm')||el.classList.contains('ca')){const tr=el.closest('tr'),rr=SEGS.find(x=>x.id===tr.dataset.seg).rows[+tr.dataset.i],v=Math.max(0,Math.round(parseFloat(el.value.replace(/,/g,''))||0));
     if(el.classList.contains('lm')){rr.ll=rr.ll||{m:0,d:pad31([])};rr.ll.m=v}else{rr.cl=rr.cl||{asig:0,d:pad31([])};rr.cl.asig=v}render()}
