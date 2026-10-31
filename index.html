@@ -517,7 +517,7 @@ function config(){
     const rows=s.rows.map((r,i)=>`<tr data-seg="${s.id}" data-i="${i}"><td class="grip" draggable="true" title="Arrastra para mover" aria-hidden="true">⋮⋮</td><td>${i+1}</td>
       <td><input class="num nm" value="${r.n.replace(/"/g,'&quot;')}" aria-label="Nombre" style="width:230px"></td>
       <td><input class="num ob" inputmode="decimal" value="${r.o}" aria-label="Objetivo mensual de ${r.n}" style="width:130px;text-align:right"></td><td>${money(r.o/HAB)}</td>${hasX(s)?`<td><input class="num lm" inputmode="numeric" value="${r.ll?r.ll.m:''}" placeholder="0" aria-label="Meta de llamadas por día de ${r.n}" style="width:90px;text-align:right"></td><td><input class="num ca" inputmode="numeric" value="${r.cl?r.cl.asig:''}" placeholder="0" aria-label="Clientes asignados de ${r.n}" style="width:90px;text-align:right"></td>`:''}
-      <td class="mvc"><button class="btn ghost sm" data-mv="${s.id}:${i}:-1" aria-label="Subir ${r.n}" ${i===0?'disabled':''}>↑</button> <button class="btn ghost sm" data-mv="${s.id}:${i}:1" aria-label="Bajar ${r.n}" ${i===s.rows.length-1?'disabled':''}>↓</button></td></tr>`).join('');
+      <td class="mvc"><button class="btn ghost sm" data-mv="${s.id}:${i}:-1" aria-label="Subir ${r.n}" ${i===0?'disabled':''}>↑</button> <button class="btn ghost sm" data-mv="${s.id}:${i}:1" aria-label="Bajar ${r.n}" ${i===s.rows.length-1?'disabled':''}>↓</button> <button class="btn ghost sm" data-rm="${s.id}:${i}" aria-label="Quitar ${r.n}" title="Quitar de este mes" style="color:var(--crittxt)">✕ Quitar</button></td></tr>`).join('');
     return `<div class="panel"><h2><span class="gname"><i class="dot" style="background:${s.c}"></i>${s.name}</span></h2><div class="hint">Arrastra el asa ⋮⋮ o usa las flechas para ordenar. Este orden se usa en el tablero, la captura y el historial.</div>
      <div class="scroll"><table class="cfg"><thead><tr><th></th><th>#</th><th>Ejecutivo</th><th>Objetivo mensual</th><th>Objetivo diario</th>${hasX(s)?'<th>Meta llamadas/día</th><th>Clientes asignados</th>':''}<th>Mover</th></tr></thead><tbody>${rows}
      <tr class="tot"><td></td><td></td><td>Total ${s.name}</td><td>${money(tot)}</td><td>${money(tot/HAB)}</td>${hasX(s)?`<td>${s.rows.reduce((a,x)=>a+(x.ll?x.ll.m:0),0)||''}</td><td>${s.rows.reduce((a,x)=>a+(x.cl?x.cl.asig:0),0)||''}</td>`:''}<td></td></tr></tbody></table></div></div>`}).join('');
@@ -554,6 +554,8 @@ document.addEventListener('click',e=>{
   else if(b.dataset.tab){st.tab=b.dataset.tab;render()}
   else if(b.dataset.capseg){st.capSeg=b.dataset.capseg;render()}
   else if(b.dataset.sort){st.sort=b.dataset.sort;render()}
+  else if(b.dataset.rm){const [sid,i]=b.dataset.rm.split(':'),s=SEGS.find(x=>x.id===sid),r=s.rows[+i];
+    if(r&&confirm('¿Quitar a '+r.n+' de '+s.name+' en '+mlabel(MKEY)+'? Se borran sus datos de este mes. Los meses anteriores no cambian.')){s.rows.splice(+i,1);st.sel=null;st.cut=lastDay();touch();render()}}
   else if(b.dataset.mv){const [sid,i,dx]=b.dataset.mv.split(':'),s=SEGS.find(x=>x.id===sid),a=+i,c=a+ +dx;if(c>=0&&c<s.rows.length){[s.rows[a],s.rows[c]]=[s.rows[c],s.rows[a]];render()}}
   else if(b.id==='habcalc'){const [y,mo]=MKEY.split('-').map(Number);MONTHS[MKEY].hab=HAB=habNet(y,mo-1);render()}
   else if(b.id==='newmonth'){const nk=nextKey(Object.keys(MONTHS).sort().pop());newMonth(MKEY,nk);setMonth(nk);st.tab='config';render();toast(mlabel(nk)+' creado con los ejecutivos y objetivos del mes anterior')}
