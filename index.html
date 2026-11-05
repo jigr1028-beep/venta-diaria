@@ -520,7 +520,7 @@ function config(){
       <td class="mvc"><button class="btn ghost sm" data-mv="${s.id}:${i}:-1" aria-label="Subir ${r.n}" ${i===0?'disabled':''}>↑</button> <button class="btn ghost sm" data-mv="${s.id}:${i}:1" aria-label="Bajar ${r.n}" ${i===s.rows.length-1?'disabled':''}>↓</button> <button class="btn ghost sm" data-rm="${s.id}:${i}" aria-label="Quitar ${r.n}" title="Quitar de este mes" style="color:var(--crittxt)">✕ Quitar</button></td></tr>`).join('');
     return `<div class="panel"><h2><span class="gname"><i class="dot" style="background:${s.c}"></i>${s.name}</span></h2><div class="hint">Arrastra el asa ⋮⋮ o usa las flechas para ordenar. Este orden se usa en el tablero, la captura y el historial.</div>
      <div class="scroll"><table class="cfg"><thead><tr><th></th><th>#</th><th>Ejecutivo</th><th>Objetivo mensual</th><th>Objetivo diario</th>${hasX(s)?'<th>Meta llamadas/día</th><th>Clientes asignados</th>':''}<th>Mover</th></tr></thead><tbody>${rows}
-     <tr class="tot"><td></td><td></td><td>Total ${s.name}</td><td>${money(tot)}</td><td>${money(tot/HAB)}</td>${hasX(s)?`<td>${s.rows.reduce((a,x)=>a+(x.ll?x.ll.m:0),0)||''}</td><td>${s.rows.reduce((a,x)=>a+(x.cl?x.cl.asig:0),0)||''}</td>`:''}<td></td></tr></tbody></table></div></div>`}).join('');
+     <tr class="tot"><td></td><td></td><td>Total ${s.name}</td><td>${money(tot)}</td><td>${money(tot/HAB)}</td>${hasX(s)?`<td>${s.rows.reduce((a,x)=>a+(x.ll?x.ll.m:0),0)||''}</td><td>${s.rows.reduce((a,x)=>a+(x.cl?x.cl.asig:0),0)||''}</td>`:''}<td></td></tr></tbody></table></div><div style="margin-top:10px"><button class="btn" data-add="${s.id}">＋ Agregar ejecutivo a ${s.name}</button></div></div>`}).join('');
   const g=ghCfg()||{};
   const gh=`<div class="panel"><h2>Publicación en GitHub</h2><div class="hint">Con esto, Guardar día publica solo, sin descargar ni subir archivos. El token se guarda únicamente en este navegador.</div>
    <div class="bar" style="margin:0"><label class="field">Usuario<input class="num" id="gh_o" value="${g.o||''}" style="width:170px" autocomplete="off"></label>
@@ -554,6 +554,10 @@ document.addEventListener('click',e=>{
   else if(b.dataset.tab){st.tab=b.dataset.tab;render()}
   else if(b.dataset.capseg){st.capSeg=b.dataset.capseg;render()}
   else if(b.dataset.sort){st.sort=b.dataset.sort;render()}
+  else if(b.dataset.add){const s=SEGS.find(x=>x.id===b.dataset.add);
+    const n=(prompt('Nombre del ejecutivo (como aparecerá en el tablero):')||'').trim();if(!n)return;
+    const o=Math.round(parseFloat((prompt('Objetivo mensual de '+n+' en '+mlabel(MKEY)+' (solo número, ej. 1500000):','0')||'0').replace(/[$,\s]/g,''))||0);
+    s.rows.push({n,o,d:pad31([])});touch();render();toast(n+' agregado a '+s.name+'. Captura sus ventas desde Captura del día.')}
   else if(b.dataset.rm){const [sid,i]=b.dataset.rm.split(':'),s=SEGS.find(x=>x.id===sid),r=s.rows[+i];
     if(r&&confirm('¿Quitar a '+r.n+' de '+s.name+' en '+mlabel(MKEY)+'? Se borran sus datos de este mes. Los meses anteriores no cambian.')){s.rows.splice(+i,1);st.sel=null;st.cut=lastDay();touch();render()}}
   else if(b.dataset.mv){const [sid,i,dx]=b.dataset.mv.split(':'),s=SEGS.find(x=>x.id===sid),a=+i,c=a+ +dx;if(c>=0&&c<s.rows.length){[s.rows[a],s.rows[c]]=[s.rows[c],s.rows[a]];render()}}
