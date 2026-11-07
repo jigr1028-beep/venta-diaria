@@ -311,7 +311,8 @@ function wkPpt(kind){
   // 3 venta por día
   const dl=d.D.map(n=>dsh(n)),best=T.dd.indexOf(Math.max(...T.dd)),od=d.segs.reduce((a,g)=>a+g.T.o,0)/HAB;
   s=slide('Venta de la semana: '+fm(T.wv)+' ('+pc(T.wp)+' del objetivo); mejor día el '+dlab(d.D[best],1),'Fuente: captura de venta diaria. Objetivo diario del equipo: '+fm(od)+'.');
-  s.addChart(p.charts.BAR,d.segs.map(g=>({name:g.s.name,labels:dl,values:g.T.dd.map(Math.round)})).concat(multi?[]:[{name:'Objetivo diario',labels:dl,values:dl.map(()=>Math.round(od))}]),Object.assign({},cdef,{x:0.5,y:1.1,w:8.8,h:5.6,barDir:'col',barGrouping:multi?'stacked':'clustered',chartColors:multi?[BLUE,'7B4FD1']:[BLUE,LBAR],showValue:!multi,dataLabelFormatCode:'$#,##0,"K"',valAxisHidden:false,valAxisMinVal:0,valAxisLabelFormatCode:'$#,##0,"K"',valAxisLabelFontSize:9,valGridLine:{color:'E6E9EE',size:0.5},catAxisLabelFontSize:10.5,barGapWidthPct:55}));
+  const o3=Object.assign({},cdef,{x:0.5,y:1.1,w:8.8,h:5.6,barDir:'col',barGrouping:multi?'stacked':'clustered',chartColors:multi?[BLUE,'7B4FD1']:[BLUE,LBAR],showValue:!multi,dataLabelFormatCode:'$#,##0,"K"',valAxisHidden:false,valAxisMinVal:0,valAxisLabelFormatCode:'$#,##0,"K"',valAxisLabelFontSize:9,valGridLine:{color:'E6E9EE',size:0.5},catAxisLabelFontSize:10.5,barGapWidthPct:55});if(multi)delete o3.dataLabelPosition;
+  s.addChart(p.charts.BAR,d.segs.map(g=>({name:g.s.name,labels:dl,values:g.T.dd.map(Math.round)})).concat(multi?[]:[{name:'Objetivo diario',labels:dl,values:dl.map(()=>Math.round(od))}]),o3);
   card(s,9.6,1.15,3.25,1.78,fk(T.wv),'Venta de la semana',pc(T.wp)+' del objetivo de '+fk(T.wo)+'.',col(T.wp));
   card(s,9.6,3.0,3.25,1.78,fk(Math.max(...T.dd)),'Mejor día: '+dlab(d.D[best],1),pc(Math.max(...T.dd)/od)+' del objetivo diario.',NAVY);
   card(s,9.6,4.85,3.25,1.78,d.D.filter((n,i)=>T.dd[i]>=od-0.005).length+' de '+d.D.length,'Días que el equipo cumplió','Días con venta igual o mayor al objetivo diario del equipo.',NAVY);
