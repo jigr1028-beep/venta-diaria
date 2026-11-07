@@ -236,108 +236,154 @@ function wkCur(ws){const i=WKSEL!=null?WKSEL:ws.findIndex(w=>st.cut>=w.a&&st.cut
 function wkUI(){
   if(!st.admin||!lastDay())return '';
   const ws=wkWeeks(),c=wkCur(ws);
-  return `<div class="field">Semana <select id="wksel">${ws.map((w,i)=>`<option value="${i}" ${i===c?'selected':''}>${w.label}</option>`).join('')}</select></div><div class="field">&nbsp;<button class="btn" id="wkppt" type="button">⬇ Descargar presentación</button></div>`
+  return `<div class="field">Semana <select id="wksel">${ws.map((w,i)=>`<option value="${i}" ${i===c?'selected':''}>${w.label}</option>`).join('')}</select></div><div class="field">Presentación semanal<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" data-wkppt="nm" type="button">⬇ Nacionales y Mayoreo</button><button class="btn" data-wkppt="ty" type="button">⬇ TYCMORS</button></div></div>`
 }
 document.addEventListener('change',e=>{if(e.target.id==='wksel')WKSEL=+e.target.value});
-document.addEventListener('click',e=>{if(e.target.closest('#wkppt'))wkPpt()});
-function wkData(w){
-  const D=w.days,end=w.b,segs=SEGS.filter(hasData).map(s=>{
+document.addEventListener('click',e=>{const b=e.target.closest('[data-wkppt]');if(b)wkPpt(b.dataset.wkppt)});
+function wkData(w,ids){
+  const D=w.days,end=w.b,rem=HAB-end;
+  const segs=SEGS.filter(s=>ids.includes(s.id)&&hasData(s)).map(s=>{
     const rows=s.rows.map(r=>{
-      const od=r.o/HAB,wv=D.reduce((a,n)=>a+(r.d[n-1]||0),0),wo=od*D.length,cum=sumTo(r,end),oa=od*end;
-      const dc=D.filter(n=>(r.d[n-1]||0)>0&&(r.d[n-1]||0)>=od-0.005).length;
-      let ll=null;if(hasCalls(r)){const L=r.ll,cw=D.reduce((a,n)=>a+(L.d[n-1]||0),0),mw=D.reduce((a,n)=>a+lmD(L,n),0),ca=L.d.slice(0,end).reduce((a,b)=>a+(b||0),0),mm_=lmCum(L,HAB),dcl=D.filter(n=>(L.d[n-1]||0)>=lmD(L,n)&&lmD(L,n)>0).length;
-        ll={cw,mw,pw:mw?cw/mw:0,ca,mm:mm_,pm:mm_?ca/mm_:0,dcl,cli:hasCli(r)?{c:(r.cl.d[end-1]||0),a:r.cl.asig}:null}}
-      return {n:r.n,o:r.o,od,wv,wo,wp:wo?wv/wo:0,dc,cum,pm:r.o?cum/r.o:0,dif:cum-oa,ritmo:oa?cum/oa:0,ll}});
-    const sum=k=>rows.reduce((a,x)=>a+x[k],0),o=sum('o'),wv=sum('wv'),wo=sum('wo'),cum=sum('cum'),oa=o/HAB*end;
-    return {s,rows,T:{o,wv,wo,wp:wo?wv/wo:0,cum,pm:o?cum/o:0,dif:cum-oa,ritmo:oa?cum/oa:0,n:rows.filter(x=>x.ritmo>=1).length,tot:rows.length}}});
-  const days=D.map(n=>({n,lab:dsh(n),v:segs.reduce((a,g)=>a+g.rows.reduce((b,x)=>b+(S_row(g.s,x.n)[n-1]||0),0),0),o:segs.reduce((a,g)=>a+g.T.o,0)/HAB}));
-  const T=segs.reduce((a,g)=>({o:a.o+g.T.o,wv:a.wv+g.T.wv,wo:a.wo+g.T.wo,cum:a.cum+g.T.cum,n:a.n+g.T.n,tot:a.tot+g.T.tot}),{o:0,wv:0,wo:0,cum:0,n:0,tot:0});
-  T.oa=T.o/HAB*end;T.dif=T.cum-T.oa;T.pm=T.o?T.cum/T.o:0;T.wp=T.wo?T.wv/T.wo:0;
-  return {segs,days,T,D,end}
+      const od=r.o/HAB,dd=D.map(n=>r.d[n-1]||0),wv=dd.reduce((a,b)=>a+b,0),wo=od*D.length,cum=sumTo(r,end),oa=od*end;
+      const dc=dd.filter(v=>v>0&&v>=od-0.005).length;
+      const avg=end?cum/end:0,tv=Math.round(avg/COSTO),tn=rem>0?Math.ceil(Math.max(0,(r.o-cum)/rem)/COSTO):0;
+      let ll=null;if(hasCalls(r)){const L=r.ll,cw=D.reduce((a,n)=>a+(L.d[n-1]||0),0),mw=D.reduce((a,n)=>a+lmD(L,n),0),dcl=D.filter(n=>(L.d[n-1]||0)>=lmD(L,n)&&lmD(L,n)>0).length;
+        ll={cw,mw,pw:mw?cw/mw:0,dcl,cli:hasCli(r)?{c:(r.cl.d[end-1]||0),a:r.cl.asig}:null}}
+      return {n:r.n,o:r.o,od,dd,wv,wo,wp:wo?wv/wo:0,dc,cum,pm:r.o?cum/r.o:0,oa,dif:cum-oa,ritmo:oa?cum/oa:0,tv,tn,ll,seg:s.name,sid:s.id}});
+    const sum=k=>rows.reduce((a,x)=>a+x[k],0),o=sum('o'),wv=sum('wv'),wo=sum('wo'),cum=sum('cum'),oa=sum('oa');
+    return {s,rows,T:{o,wv,wo,wp:wo?wv/wo:0,cum,pm:o?cum/o:0,oa,dif:cum-oa,ritmo:oa?cum/oa:0,n:rows.filter(x=>x.ritmo>=1).length,tot:rows.length,dd:D.map((n,i)=>rows.reduce((a,x)=>a+x.dd[i],0))}}});
+  const all=segs.flatMap(g=>g.rows);
+  const T={o:0,wv:0,wo:0,cum:0,oa:0};all.forEach(x=>{T.o+=x.o;T.wv+=x.wv;T.wo+=x.wo;T.cum+=x.cum;T.oa+=x.oa});
+  T.wp=T.wo?T.wv/T.wo:0;T.pm=T.o?T.cum/T.o:0;T.dif=T.cum-T.oa;T.ritmo=T.oa?T.cum/T.oa:0;T.n=all.filter(x=>x.ritmo>=1).length;T.tot=all.length;
+  T.dd=D.map((n,i)=>segs.reduce((a,g)=>a+g.T.dd[i],0));
+  return {segs,all,T,D,end,rem}
 }
-function S_row(s,name){const r=s.rows.find(x=>x.n===name);return r?r.d:[]}
-function wkPpt(){
+const WK_COVER='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';
+function wkPpt(kind){
   if(typeof PptxGenJS==='undefined'){toast('No se pudo cargar el generador de presentaciones');return}
   const ws=wkWeeks(),w=ws[wkCur(ws)];if(!w){toast('Todavía no hay ventas capturadas');return}
-  const d=wkData(w),p=new PptxGenJS();p.layout='LAYOUT_WIDE';p.title='Resultados de la semana · LLYASA';
-  const NAVY='042C53',BLUE='0652CA',INK='212529',MUT='6B7480',LINE='DEE2E6',SOFT='F3F5F8',GOOD='0C8A0C',WARN='B77A00',BAD='C0392B';
-  const COL={nac:'2A78D6',ty:'EB6834',my:'7B4FD1'};
-  const mkey=MKEY,per=w.label.replace(/ · .*/,'');
-  const fm=x=>money(x),fd=x=>(x<0?'−':'+')+money(Math.abs(x));
-  const sc=x=>x>=1?GOOD:x>=.8?WARN:BAD,st_=x=>x>=1?'En ritmo':x>=.8?'Cerca':'Rezagado';
-  const frame=(title,sub,color)=>{const s=p.addSlide();s.background={color:'FFFFFF'};
-    s.addShape(p.ShapeType.rect,{x:0,y:0,w:13.33,h:0.18,fill:{color:color||BLUE},line:{color:color||BLUE}});
-    s.addText(title,{x:0.5,y:0.3,w:10.5,h:0.6,fontSize:26,bold:true,color:NAVY,fontFace:'Calibri'});
-    if(sub)s.addText(sub,{x:0.5,y:0.88,w:12,h:0.35,fontSize:13,color:MUT,fontFace:'Calibri'});
-    s.addText('LLYASA · '+per+' · '+mlabel(mkey),{x:0.5,y:7.05,w:9,h:0.3,fontSize:10,color:MUT});
+  const ids=kind==='ty'?['ty']:['nac','my'],title=kind==='ty'?'TYCMORS':'Nacionales y Mayoreo';
+  const d=wkData(w,ids);if(!d.segs.length){toast('No hay ventas de '+title+' en esa semana');return}
+  const p=new PptxGenJS();p.layout='LAYOUT_WIDE';p.title='Reunión semanal · '+title;
+  const NAVY='0B2A6F',BLUE='1565C0',INK='1A1F2E',MUT='5B667D',TINT='EEF3FB',LINE='D5DCE8',GOOD='1E7A45',BAD='B42323',AMB='8A5A00',LBAR='B8C4DE',DARK='1C3F8A',F='Calibri';
+  const per=dlab(w.a)+' al '+dlab(w.b)+' · '+mlabel(MKEY).split(' ')[1],mon=mlabel(MKEY);
+  const fm=x=>money(x),fd=x=>(x<0?'−':'+')+money(Math.abs(x)),fk=x=>x>=1e6?'$'+(x/1e6).toFixed(2)+'M':'$'+Math.round(x/1e3)+'K';
+  const col=x=>x>=1?GOOD:x>=.8?AMB:BAD,bg=x=>x>=1?'E3F4EA':x>=.8?'FFF3D6':'FBE3E3';
+  let page=1;
+  const slide=(t,src)=>{const s=p.addSlide();s.background={color:'FFFFFF'};page++;
+    s.addText(t,{x:0.5,y:0.3,w:12.3,h:0.7,fontSize:22,bold:true,color:NAVY,fontFace:F,valign:'top'});
+    s.addText(title+' · Reunión semanal · '+per,{x:0.5,y:7.1,w:9,h:0.25,fontSize:9,color:MUT,fontFace:F});
+    s.addText(String(page),{x:12.3,y:7.1,w:0.5,h:0.25,fontSize:9,color:MUT,fontFace:F,align:'right'});
+    if(src)s.addText(src,{x:0.5,y:6.78,w:12,h:0.25,fontSize:9,italic:true,color:MUT,fontFace:F});
     return s};
-  const hdr=(t,al)=>({text:t,options:{bold:true,color:'FFFFFF',fill:{color:NAVY},align:al||'right',fontSize:11,valign:'middle'}});
-  const cell=(t,o={})=>({text:String(t),options:Object.assign({fontSize:11,color:INK,align:'right',valign:'middle'},o)});
+  const card=(s,x,y,w_,h,big,lab,sub,c,dark)=>{
+    s.addShape(p.ShapeType.roundRect,{x,y,w:w_,h,fill:{color:dark?DARK:TINT},line:{color:dark?DARK:TINT},rectRadius:0.08});
+    s.addText(big,{x:x+0.2,y:y+0.1,w:w_-0.4,h:0.62,fontSize:30,bold:true,color:dark?'FFFFFF':(c||NAVY),fontFace:F,valign:'middle',fit:'shrink'});
+    s.addText(lab,{x:x+0.2,y:y+0.7,w:w_-0.4,h:0.5,fontSize:12,bold:true,color:dark?'FFFFFF':INK,fontFace:F,valign:'top'});
+    s.addText(sub||'',{x:x+0.2,y:y+1.18,w:w_-0.4,h:h-1.22,fontSize:10,color:dark?'CADCFC':MUT,fontFace:F,valign:'top'})};
+  const hd=(t,al)=>({text:t,options:{bold:true,color:'FFFFFF',fill:{color:NAVY},align:al||'right',fontSize:10.5,valign:'middle',fontFace:F}});
+  const ce=(t,o={})=>({text:String(t),options:Object.assign({fontSize:10.5,color:INK,align:'right',valign:'middle',fontFace:F},o)});
+  const pcell=(x,dg=0,o={})=>ce(pc(x,dg),Object.assign({bold:true,color:col(x),fill:{color:bg(x)}},o));
+  const tb={border:{type:'solid',color:LINE,pt:0.75},fontFace:F};
+  const cdef={showLegend:true,legendPos:'t',legendFontSize:10,legendFontFace:F,catAxisLabelFontSize:9.5,catAxisLabelFontFace:F,valAxisHidden:true,valGridLine:{style:'none'},catGridLine:{style:'none'},showValue:true,dataLabelFontSize:9,dataLabelFontFace:F,dataLabelColor:INK,dataLabelPosition:'outEnd'};
+  const hbar=(s,names,series,colors,fmt,x,y,w_,h)=>s.addChart(p.charts.BAR,series.map(a=>({name:a[0],labels:names,values:a[1]})),Object.assign({},cdef,{x,y,w:w_,h,barDir:'bar',barGrouping:'clustered',catAxisOrientation:'maxMin',chartColors:colors,dataLabelFormatCode:fmt,barGapWidthPct:45}));
   // 1 portada
-  let s=p.addSlide();s.background={color:NAVY};
-  s.addShape(p.ShapeType.rect,{x:0,y:0,w:0.35,h:7.5,fill:{color:'F5B800'},line:{color:'F5B800'}});
-  s.addText('Resultados de la semana',{x:1,y:2.2,w:11,h:1,fontSize:44,bold:true,color:'FFFFFF'});
-  s.addText('Venta diaria de ejecutivos',{x:1,y:3.2,w:11,h:0.5,fontSize:22,color:'9CC3F5'});
-  s.addText(per+' de '+mlabel(mkey).split(' ')[1]+'  ·  '+mlabel(mkey),{x:1,y:4.0,w:11,h:0.5,fontSize:18,color:'FFFFFF'});
-  s.addText('Centro de Atención Comercial · LLYASA',{x:1,y:6.6,w:11,h:0.4,fontSize:13,color:'9CC3F5'});
-  // 2 resumen
-  s=frame('Resumen de la semana',per+' · corte al día hábil '+w.b+' ('+dlab(w.b,1)+')');
-  const T=d.T,kp=[['Venta de la semana',fm(T.wv),pc(T.wp)+' del objetivo de la semana ('+fm(T.wo)+')',T.wp>=1?GOOD:BAD],
-    ['Acumulado del mes',fm(T.cum),pc(T.pm,1)+' de '+fm(T.o),INK],
-    ['Contra el ritmo',fd(T.dif),'objetivo a hoy '+fm(T.oa),T.dif<0?BAD:GOOD],
-    ['Ejecutivos en ritmo',T.n+' de '+T.tot,pc(T.tot?T.n/T.tot:0)+' del equipo',INK]];
-  kp.forEach((k,i)=>{const x=0.5+i*3.1;s.addShape(p.ShapeType.roundRect,{x,y:1.45,w:2.95,h:1.55,fill:{color:SOFT},line:{color:LINE},rectRadius:0.08});
-    s.addText(k[0].toUpperCase(),{x:x+0.15,y:1.52,w:2.7,h:0.3,fontSize:10,bold:true,color:MUT});
-    s.addText(k[1],{x:x+0.15,y:1.82,w:2.7,h:0.6,fontSize:26,bold:true,color:k[3]});
-    s.addText(k[2],{x:x+0.15,y:2.42,w:2.7,h:0.5,fontSize:10.5,color:MUT,valign:'top'})});
-  s.addChart(p.charts.BAR,[{name:'Venta del día',labels:d.days.map(x=>x.lab),values:d.days.map(x=>Math.round(x.v))},{name:'Objetivo diario',labels:d.days.map(x=>x.lab),values:d.days.map(x=>Math.round(x.o))}],
-    {x:0.5,y:3.2,w:12.3,h:3.75,barDir:'col',barGrouping:'clustered',chartColors:[BLUE,'C9CED6'],showLegend:true,legendPos:'b',legendFontSize:11,catAxisLabelFontSize:11,valAxisLabelFontSize:10,valAxisLabelFormatCode:'$#,##0',showValue:true,dataLabelFormatCode:'$#,##0',dataLabelFontSize:9,valGridLine:{color:'E6E9EE',size:0.5},barGapWidthPct:60});
-  // 3 por segmento
-  s=frame('Resultado por segmento','Venta de la semana contra su objetivo y avance del mes');
-  const rows3=[[hdr('Segmento','left'),hdr('Objetivo semana'),hdr('Venta semana'),hdr('% obj. semana'),hdr('Acumulado mes'),hdr('% avance mes'),hdr('Dif. vs ritmo'),hdr('En ritmo','center')]];
-  d.segs.forEach(g=>{const t=g.T;rows3.push([cell(g.s.name,{align:'left',bold:true,color:COL[g.s.id]}),cell(fm(t.wo)),cell(fm(t.wv)),cell(pc(t.wp),{bold:true,color:t.wp>=1?GOOD:BAD}),cell(fm(t.cum)),cell(pc(t.pm,1)),cell(fd(t.dif),{color:t.dif<0?BAD:GOOD}),cell(t.n+' de '+t.tot,{align:'center'})])});
-  rows3.push([cell('Total',{align:'left',bold:true,fill:{color:SOFT}}),cell(fm(T.wo),{bold:true,fill:{color:SOFT}}),cell(fm(T.wv),{bold:true,fill:{color:SOFT}}),cell(pc(T.wp),{bold:true,fill:{color:SOFT}}),cell(fm(T.cum),{bold:true,fill:{color:SOFT}}),cell(pc(T.pm,1),{bold:true,fill:{color:SOFT}}),cell(fd(T.dif),{bold:true,fill:{color:SOFT},color:T.dif<0?BAD:GOOD}),cell(T.n+' de '+T.tot,{align:'center',bold:true,fill:{color:SOFT}})]);
-  s.addTable(rows3,{x:0.5,y:1.5,w:12.3,colW:[2.2,1.5,1.5,1.4,1.6,1.4,1.5,1.2],rowH:0.5,border:{type:'solid',color:LINE,pt:0.75},fontFace:'Calibri'});
-  // por segmento detalle
-  d.segs.forEach(g=>{
-    const many=g.rows.length>12,fs=many?9.5:11,rh=many?0.31:0.4;
-    s=frame(g.s.name+' · venta por ejecutivo','Venta de la semana ('+D_lbl(d)+') y avance del mes al día hábil '+w.b,COL[g.s.id]);
-    const o2=t=>hdr(t);const R=[[hdr('Ejecutivo','left'),o2('Venta semana'),o2('% obj. semana'),o2('Días que cumplió'),o2('Acumulado mes'),o2('% avance mes'),o2('Dif. vs ritmo'),hdr('Ritmo','center')]];
-    g.rows.forEach(x=>R.push([cell(x.n,{align:'left',bold:true,fontSize:fs}),cell(fm(x.wv),{fontSize:fs}),cell(pc(x.wp),{fontSize:fs,bold:true,color:x.wp>=1?GOOD:BAD}),cell(x.dc+' de '+d.D.length,{fontSize:fs}),cell(fm(x.cum),{fontSize:fs}),cell(pc(x.pm,1),{fontSize:fs}),cell(fd(x.dif),{fontSize:fs,color:x.dif<0?BAD:GOOD}),cell(st_(x.ritmo),{fontSize:fs,align:'center',bold:true,color:'FFFFFF',fill:{color:sc(x.ritmo)}})]));
-    const t=g.T,B=o=>Object.assign({bold:true,fill:{color:SOFT},fontSize:fs},o||{});
-    R.push([cell('Total '+g.s.name,B({align:'left'})),cell(fm(t.wv),B()),cell(pc(t.wp),B({color:t.wp>=1?GOOD:BAD})),cell('',B()),cell(fm(t.cum),B()),cell(pc(t.pm,1),B()),cell(fd(t.dif),B({color:t.dif<0?BAD:GOOD})),cell(st_(t.ritmo),B({align:'center'}))]);
-    s.addTable(R,{x:0.5,y:1.4,w:12.3,colW:[3.0,1.5,1.4,1.4,1.6,1.3,1.5,1.0].map((v,i,a)=>v*12.3/a.reduce((q,z)=>q+z,0)),rowH:rh,border:{type:'solid',color:LINE,pt:0.75},fontFace:'Calibri'});
-    // llamadas
-    const cr=g.rows.filter(x=>x.ll);
-    if(cr.length){
-      const s2=frame(g.s.name+' · llamadas y clientes','Llamadas de la semana contra su meta (sábado cuenta medio día) · clientes con compra al corte',COL[g.s.id]);
-      const hc=cr.some(x=>x.ll.cli);
-      const R2=[[hdr('Ejecutivo','left'),hdr('Meta semana'),hdr('Llamadas semana'),hdr('% de la meta'),hdr('Días que cumplió'),hdr('% meta del mes')].concat(hc?[hdr('Clientes con compra')]:[])];
-      cr.forEach(x=>{const l=x.ll;R2.push([cell(x.n,{align:'left',bold:true}),cell(l.mw),cell(l.cw),cell(pc(l.pw),{bold:true,color:l.pw>=1?GOOD:BAD}),cell(l.dcl+' de '+d.D.length),cell(pc(l.pm,1))].concat(hc?[cell(l.cli?l.cli.c+' de '+l.cli.a+' ('+pc(l.cli.c/l.cli.a)+')':'—')]:[]))});
-      const tm=cr.reduce((a,x)=>a+x.ll.mw,0),tc=cr.reduce((a,x)=>a+x.ll.cw,0),B2=o=>Object.assign({bold:true,fill:{color:SOFT}},o||{}),tca=cr.reduce((a,x)=>a+x.ll.ca,0),tmm=cr.reduce((a,x)=>a+x.ll.mm,0);
-      R2.push([cell('Total',B2({align:'left'})),cell(tm,B2()),cell(tc,B2()),cell(pc(tm?tc/tm:0),B2()),cell('',B2()),cell(pc(tmm?tca/tmm:0,1),B2())].concat(hc?[cell('',B2())]:[]));
-      s2.addTable(R2,{x:0.5,y:1.5,w:12.3,rowH:0.4,border:{type:'solid',color:LINE,pt:0.75},fontFace:'Calibri'});
+  let s=p.addSlide();s.background={color:'FFFFFF'};
+  s.addImage({data:'image/png;base64,'+WK_COVER,x:0,y:0,w:13.333,h:7.5});
+  s.addText(title,{x:3,y:4.75,w:7.3,h:0.5,fontSize:24,bold:true,color:'0B5FD8',fontFace:F,align:'center'});
+  s.addText('Reunión semanal',{x:3,y:5.3,w:7.3,h:0.55,fontSize:28,bold:true,color:'0B5FD8',fontFace:F,align:'center'});
+  s.addText(per,{x:3,y:5.95,w:7.3,h:0.4,fontSize:15,color:MUT,fontFace:F,align:'center'});
+  const T=d.T,multi=d.segs.length>1;
+  // 2 resumen tabla
+  const head2=kind==='ty'?'TYCMORS vendió '+fm(T.wv)+' en la semana: '+pc(T.wp)+' del objetivo semanal':d.segs.map(g=>g.s.name+' '+pc(g.T.wp)).join(' · ')+' del objetivo semanal';
+  s=slide(head2,'Fuente: captura de venta diaria, corte al día hábil '+d.end+' ('+dlab(d.end,1)+'). Objetivo semanal = objetivo diario × días hábiles de la semana.');
+  const R=[[hd('Equipo','left'),hd('Objetivo mes'),hd('Venta semana'),hd('% obj. semana'),hd('Venta acumulada'),hd('% avance mes')]];
+  d.segs.forEach(g=>{const t=g.T,B={bold:true,fill:{color:TINT},color:NAVY};
+    R.push([ce((g.s.id==='nac'?'CUENTAS NACIONALES':g.s.id==='my'?'MAYOREO (total)':g.s.name.toUpperCase()),Object.assign({align:'left'},B)),ce(fm(t.o),B),ce(fm(t.wv),B),pcell(t.wp),ce(fm(t.cum),B),pcell(t.ritmo)]);
+    g.rows.forEach(x=>R.push([ce('   '+x.n,{align:'left'}),ce(fm(x.o)),ce(fm(x.wv)),pcell(x.wp),ce(fm(x.cum)),pcell(x.ritmo)]))});
+  const nr=R.length,rh=nr>14?0.29:0.34;
+  s.addTable(R,Object.assign({x:0.5,y:1.15,w:8.4,colW:[2.9,1.3,1.3,1.0,1.4,1.0].map(v=>v*8.4/8.9),rowH:rh},tb));
+  s.addText('% avance mes = venta acumulada contra el objetivo al día de corte (ritmo).',{x:0.5,y:1.2+nr*rh+0.05,w:8.4,h:0.25,fontSize:9,italic:true,color:MUT,fontFace:F});
+  const cs=d.segs.map(g=>[pc(g.T.ritmo),g.s.name,fm(g.T.cum)+' vendidos contra '+fm(g.T.oa)+' que tocaban al día '+d.end+'. Venta de la semana: '+fm(g.T.wv)+'.',col(g.T.ritmo)]);
+  if(multi)cs.push([fk(T.cum),d.segs.map(g=>g.s.name).join(' + '),'Venta acumulada del mes contra '+fm(T.o)+' de objetivo combinado.',NAVY]);
+  else{cs.push([T.n+' de '+T.tot,'Ejecutivos en ritmo','Acumulado igual o mayor al objetivo del día '+d.end+'.',NAVY]);cs.push([fd(T.dif),'Contra el ritmo','Objetivo a hoy: '+fm(T.oa)+'.',T.dif<0?BAD:GOOD])}
+  cs.slice(0,3).forEach((c,i)=>card(s,9.2,1.15+i*1.85,3.65,1.78,c[0],c[1],c[2],c[3]));
+  // 3 venta por día
+  const dl=d.D.map(n=>dsh(n)),best=T.dd.indexOf(Math.max(...T.dd)),od=d.segs.reduce((a,g)=>a+g.T.o,0)/HAB;
+  s=slide('Venta de la semana: '+fm(T.wv)+' ('+pc(T.wp)+' del objetivo); mejor día el '+dlab(d.D[best],1),'Fuente: captura de venta diaria. Objetivo diario del equipo: '+fm(od)+'.');
+  s.addChart(p.charts.BAR,d.segs.map(g=>({name:g.s.name,labels:dl,values:g.T.dd.map(Math.round)})).concat(multi?[]:[{name:'Objetivo diario',labels:dl,values:dl.map(()=>Math.round(od))}]),Object.assign({},cdef,{x:0.5,y:1.1,w:8.8,h:5.6,barDir:'col',barGrouping:multi?'stacked':'clustered',chartColors:multi?[BLUE,'7B4FD1']:[BLUE,LBAR],showValue:!multi,dataLabelFormatCode:'$#,##0,"K"',valAxisHidden:false,valAxisMinVal:0,valAxisLabelFormatCode:'$#,##0,"K"',valAxisLabelFontSize:9,valGridLine:{color:'E6E9EE',size:0.5},catAxisLabelFontSize:10.5,barGapWidthPct:55}));
+  card(s,9.6,1.15,3.25,1.78,fk(T.wv),'Venta de la semana',pc(T.wp)+' del objetivo de '+fk(T.wo)+'.',col(T.wp));
+  card(s,9.6,3.0,3.25,1.78,fk(Math.max(...T.dd)),'Mejor día: '+dlab(d.D[best],1),pc(Math.max(...T.dd)/od)+' del objetivo diario.',NAVY);
+  card(s,9.6,4.85,3.25,1.78,d.D.filter((n,i)=>T.dd[i]>=od-0.005).length+' de '+d.D.length,'Días que el equipo cumplió','Días con venta igual o mayor al objetivo diario del equipo.',NAVY);
+  // 4 por ejecutivo
+  const byW=d.all.slice().sort((a,b)=>b.wv-a.wv),cum_n=d.all.filter(x=>x.wp>=1).length,topW=d.all.slice().sort((a,b)=>b.wp-a.wp)[0];
+  s=slide(cum_n+' de '+d.all.length+' ejecutivos cumplieron su objetivo semanal; '+topW.n+' lidera con '+pc(topW.wp),'Venta de la semana contra el objetivo semanal de cada ejecutivo ('+per.split(' · ')[0]+').');
+  hbar(s,byW.map(x=>x.n),[['Objetivo de la semana',byW.map(x=>Math.round(x.wo))],['Venta de la semana',byW.map(x=>Math.round(x.wv))]],[LBAR,BLUE],'$#,##0,"K"',0.5,1.05,8.7,5.7);
+  card(s,9.6,1.15,3.25,1.78,pc(topW.wp),topW.n,fm(topW.wv)+' vendidos contra '+fm(topW.wo)+' de objetivo de la semana.',GOOD);
+  card(s,9.6,3.0,3.25,1.78,cum_n+' de '+d.all.length,'Cumplieron la semana','Venta de la semana igual o mayor a su objetivo semanal.',NAVY);
+  const lowW=d.all.slice().sort((a,b)=>a.wp-b.wp)[0];
+  card(s,9.6,4.85,3.25,1.78,pc(lowW.wp),'Menor avance: '+lowW.n,'Le faltaron '+fm(Math.max(0,lowW.wo-lowW.wv))+' para su objetivo de la semana.',BAD);
+  // 5 avance del mes
+  const byR=d.all.slice().sort((a,b)=>b.ritmo-a.ritmo),adel=byR[0],atr=byR[byR.length-1];
+  s=slide(T.n+' de '+d.all.length+' ejecutivos van en ritmo; el equipo está en '+pc(T.ritmo)+' de lo que tocaba al día '+d.end,'% avance = venta acumulada entre lo que correspondía vender al día '+d.end+' de '+d.end+' (ritmo).');
+  hbar(s,byR.map(x=>x.n),[['Ritmo esperado',byR.map(()=>1)],['Avance al corte',byR.map(x=>+x.ritmo.toFixed(3))]],[LBAR,BLUE],'0%',0.5,1.05,8.7,5.7);
+  card(s,9.6,1.15,3.25,1.78,pc(T.ritmo),'Equipo al día '+d.end,fm(T.cum)+' vendidos contra '+fm(T.oa)+' del ritmo.',col(T.ritmo));
+  card(s,9.6,3.0,3.25,1.78,fd(adel.dif),'Mayor adelanto: '+adel.n,pc(adel.ritmo)+' de su ritmo del mes.',adel.dif>=0?GOOD:BAD);
+  card(s,9.6,4.85,3.25,1.78,fd(atr.dif),'Mayor atraso: '+atr.n,'Va en '+pc(atr.ritmo)+' de su ritmo del mes.',atr.dif<0?BAD:GOOD);
+  // 5b llantas (TYCMORS)
+  if(kind==='ty'){
+    const byT=d.all.slice().sort((a,b)=>b.tv-a.tv),tv=byT.reduce((a,x)=>a+x.tv,0),done=d.rem<=0,tn=byT.reduce((a,x)=>a+x.tn,0),ok=byT.filter(x=>x.tv>=x.tn).length;
+    s=slide(done?'Llantas de camión: el equipo vendió '+tv+' al día en promedio durante el mes':'Llantas de camión: el equipo vende '+tv+' al día y necesita '+tn+' para cerrar el mes','Vendidas por día = promedio diario acumulado ÷ '+fm(COSTO)+' por llanta. Necesarias por día = lo que falta del objetivo ÷ días hábiles restantes ÷ costo por llanta.');
+    hbar(s,byT.map(x=>x.n),[['Necesarias por día',byT.map(x=>x.tn)],['Vendidas por día (promedio)',byT.map(x=>x.tv)]],[LBAR,BLUE],'0',0.5,1.05,8.7,5.7);
+    card(s,9.6,1.15,3.25,1.78,String(tv),'Llantas por día (promedio)','Del día 1 al '+d.end+', a '+fm(COSTO)+' por llanta.',NAVY);
+    card(s,9.6,3.0,3.25,1.78,done?'—':String(tn),'Necesarias por día',done?'El mes ya cerró; no quedan días hábiles.':'Para llegar al objetivo en los '+d.rem+' días hábiles que quedan.',done||tn<=tv?GOOD:BAD);
+    card(s,9.6,4.85,3.25,1.78,ok+' de '+byT.length,'Ya van al ritmo necesario','Venden por día igual o más de lo que necesitan.',NAVY);
+  }
+  // 6 llamadas
+  const cl=d.all.filter(x=>x.ll);
+  if(cl.length){
+    const tc=cl.reduce((a,x)=>a+x.ll.cw,0),tm=cl.reduce((a,x)=>a+x.ll.mw,0),okc=cl.filter(x=>x.ll.pw>=1).length,bc=cl.slice().sort((a,b)=>b.ll.pw-a.ll.pw);
+    s=slide('Llamadas: '+tc+' en la semana, '+pc(tm?tc/tm:0)+' de la meta; '+okc+' de '+cl.length+' ejecutivos la cumplieron','Meta de llamadas = meta diaria × días de la semana (el sábado cuenta medio día).');
+    hbar(s,bc.map(x=>x.n+(multi?'':'')),[['Meta de la semana',bc.map(x=>x.ll.mw)],['Llamadas realizadas',bc.map(x=>x.ll.cw)]],[LBAR,BLUE],'0',0.5,1.05,8.7,5.7);
+    card(s,9.6,1.15,3.25,1.78,String(tc),'Llamadas de la semana','Meta: '+tm+' ('+pc(tm?tc/tm:0)+').',col(tm?tc/tm:0));
+    card(s,9.6,3.0,3.25,1.78,bc[0].ll.cw+' · '+pc(bc[0].ll.pw),'Más llamadas: '+bc[0].n,'Meta de la semana: '+bc[0].ll.mw+' llamadas.',GOOD);
+    const dcm=cl.slice().sort((a,b)=>b.ll.dcl-a.ll.dcl)[0];
+    card(s,9.6,4.85,3.25,1.78,dcm.ll.dcl+' de '+d.D.length,'Más días con meta cumplida',dcm.n+' cumplió su meta de llamadas esos días.',NAVY);
+    const cc=cl.filter(x=>x.ll.cli&&x.ll.cli.a>0);
+    if(cc.length){
+      const sc=cc.slice().sort((a,b)=>b.ll.cli.c/b.ll.cli.a-a.ll.cli.c/a.ll.cli.a),tcc=cc.reduce((a,x)=>a+x.ll.cli.c,0),tca=cc.reduce((a,x)=>a+x.ll.cli.a,0);
+      s=slide('Clientes con compra: '+tcc+' de '+tca+' asignados ('+pc(tca?tcc/tca:0)+') al día '+d.end,'Clientes con compra en el mes contra clientes asignados a cada ejecutivo.');
+      hbar(s,sc.map(x=>x.n),[['Clientes asignados',sc.map(x=>x.ll.cli.a)],['Clientes con compra',sc.map(x=>x.ll.cli.c)]],[LBAR,BLUE],'0',0.5,1.05,8.7,5.7);
+      const bp=sc[0];
+      card(s,9.6,1.15,3.25,1.78,pc(tca?tcc/tca:0),'Penetración del equipo',tcc+' clientes con compra de '+tca+' asignados.',NAVY);
+      card(s,9.6,3.0,3.25,1.78,pc(bp.ll.cli.c/bp.ll.cli.a),'Mayor penetración: '+bp.n,bp.ll.cli.c+' de '+bp.ll.cli.a+' clientes.',GOOD);
+      const wp_=sc[sc.length-1];
+      card(s,9.6,4.85,3.25,1.78,pc(wp_.ll.cli.c/wp_.ll.cli.a),'Por activar: '+wp_.n,'Faltan '+(wp_.ll.cli.a-wp_.ll.cli.c)+' clientes por tener compra.',BAD);
     }
-  });
-  // reconocimientos
-  s=frame('Reconocimientos y atención','Quién destacó esta semana y a quién hay que acompañar');
-  const all=[];d.segs.forEach(g=>g.rows.forEach(x=>{if(x.wo>0)all.push(Object.assign({seg:g.s.name,col:COL[g.s.id]},x))}));
-  const top=all.slice().sort((a,b)=>b.wp-a.wp).slice(0,5);
-  s.addText('Mejor semana (% del objetivo semanal)',{x:0.5,y:1.4,w:6,h:0.4,fontSize:15,bold:true,color:NAVY});
-  s.addTable([[hdr('#','center'),hdr('Ejecutivo','left'),hdr('Segmento','left'),hdr('Venta semana'),hdr('% obj.')]].concat(top.map((x,i)=>[cell(i+1,{align:'center',bold:true}),cell(x.n,{align:'left',bold:true}),cell(x.seg,{align:'left',color:x.col,bold:true}),cell(fm(x.wv)),cell(pc(x.wp),{bold:true,color:x.wp>=1?GOOD:BAD})])),{x:0.5,y:1.85,w:6.3,colW:[0.5,2.3,1.3,1.3,0.9],rowH:0.42,border:{type:'solid',color:LINE,pt:0.75},fontFace:'Calibri'});
-  const full=all.filter(x=>x.dc===d.D.length);
-  s.addText('Cumplieron la meta diaria los '+d.D.length+' días',{x:7.1,y:1.4,w:5.8,h:0.4,fontSize:15,bold:true,color:NAVY});
-  s.addText(full.length?full.map(x=>({text:x.n+'  ('+x.seg+')',options:{bullet:true,breakLine:true}})):[{text:'Ningún ejecutivo esta semana.',options:{color:MUT}}],{x:7.1,y:1.85,w:5.7,h:1.8,fontSize:13,color:INK,valign:'top'});
-  const low=all.filter(x=>x.ritmo<.8).sort((a,b)=>a.ritmo-b.ritmo);
-  s.addText('Rezagados al cierre de la semana (ritmo del mes menor a 80%)',{x:7.1,y:3.75,w:5.8,h:0.4,fontSize:15,bold:true,color:BAD});
-  s.addText(low.length?low.slice(0,7).map(x=>({text:x.n+' · '+pc(x.ritmo)+' · '+fd(x.dif)+' vs ritmo',options:{bullet:true,breakLine:true}})):[{text:'Nadie por debajo de 80%.',options:{color:MUT}}],{x:7.1,y:4.2,w:5.7,h:2.6,fontSize:12.5,color:INK,valign:'top'});
-  // acuerdos
-  s=frame('Acuerdos y siguientes pasos','Espacio para completar durante la reunión');
-  [0,1,2,3].forEach(i=>{s.addShape(p.ShapeType.line,{x:0.8,y:2.2+i*1.1,w:11.7,h:0,line:{color:LINE,width:1}})});
-  const fn='Resultados_semana_'+String(dateOf(w.a).getDate()).padStart(2,'0')+'-'+String(dateOf(w.b).getDate()).padStart(2,'0')+'_'+MABR[dateOf(w.b).getMonth()].toLowerCase().replace('.','')+'_'+dateOf(w.b).getFullYear();
+  }
+  // 7 reconocimientos
+  const top3=d.all.slice().sort((a,b)=>b.wp-a.wp).slice(0,3),full=d.all.filter(x=>x.dc===d.D.length),mx=d.all.map(x=>({x,v:Math.max(...x.dd),i:x.dd.indexOf(Math.max(...x.dd))})).sort((a,b)=>b.v-a.v)[0];
+  s=slide('Reconocimientos de la semana: '+top3[0].n+' fue el mejor con '+pc(top3[0].wp)+' de su objetivo','Mejor semana medida como venta de la semana ÷ objetivo semanal.');
+  top3.forEach((x,i)=>card(s,0.5+i*4.15,1.2,3.95,2.35,pc(x.wp),(i+1)+'° · '+x.n,fm(x.wv)+' vendidos en la semana contra '+fm(x.wo)+' de objetivo. '+x.dc+' de '+d.D.length+' días cumplió su meta diaria.',i===0?GOOD:NAVY,i===0));
+  card(s,0.5,3.8,3.95,2.7,String(full.length),'Cumplieron la meta los '+d.D.length+' días',full.length?full.map(x=>x.n).join(', ')+'.':'Ningún ejecutivo cumplió su meta diaria todos los días.',NAVY);
+  card(s,4.65,3.8,3.95,2.7,fk(mx.v),'Mayor venta en un día',mx.x.n+' el '+dlab(d.D[mx.i],1)+': '+pc(mx.v/mx.x.od)+' de su objetivo diario.',NAVY);
+  const bd=d.all.slice().sort((a,b)=>b.dc-a.dc)[0];
+  card(s,8.8,3.8,3.95,2.7,bd.dc+' de '+d.D.length,'Más días con meta diaria',bd.n+' cumplió su objetivo diario '+bd.dc+' de los '+d.D.length+' días.',NAVY);
+  // 8 oportunidades
+  s=p.addSlide();s.background={color:NAVY};page++;
+  s.addText('Áreas de oportunidad para la próxima semana',{x:0.5,y:0.3,w:12.3,h:0.6,fontSize:22,bold:true,color:'FFFFFF',fontFace:F});
+  const falta=Math.max(0,T.o-T.cum),porDia=d.rem>0?falta/d.rem:0,lw=byR[byR.length-1],lowd=d.all.slice().sort((a,b)=>a.dc-b.dc)[0],bb=d.all.filter(x=>x.ritmo<.8);
+  const ops=[[fk(Math.max(0,-T.dif)),'Para ir al día','Falta '+fm(Math.max(0,-T.dif))+' para alcanzar lo que tocaba vender al día '+d.end+'.'.replace('Falta','Falta')],
+    [fk(falta),'Para el objetivo del mes','Faltan '+fm(falta)+' de '+fm(T.o)+(d.rem>0?' ('+d.rem+' días hábiles restantes).':'; el mes ya cerró.')],
+    [d.rem>0?fk(porDia):'—','Venta diaria necesaria',d.rem>0?'Promedio por día durante los '+d.rem+' días hábiles que quedan para llegar al 100%.':'El mes ya cerró; no quedan días hábiles.'],
+    [String(bb.length),'Ejecutivos bajo 80% de ritmo',bb.length?bb.slice().sort((a,b)=>a.ritmo-b.ritmo).slice(0,4).map(x=>x.n+' ('+pc(x.ritmo)+')').join(', ')+'.':'Todos están arriba de 80%.'],
+    [fd(lw.dif),'Mayor atraso: '+lw.n,'Va en '+pc(lw.ritmo)+' de su ritmo'+(d.rem>0?'; necesita '+fm(Math.max(0,lw.o-lw.cum)/d.rem)+' por día.':'.')],
+    [lowd.dc+' de '+d.D.length,'Menos días con meta: '+lowd.n,'Cumplió su objetivo diario solo '+lowd.dc+' días de la semana.']];
+  ops.forEach((c,i)=>card(s,0.5+(i%3)*4.15,1.2+Math.floor(i/3)*2.8,3.95,2.55,c[0],c[1],c[2],null,true));
+  s.addText(String(page),{x:12.3,y:7.1,w:0.5,h:0.25,fontSize:9,color:'CADCFC',fontFace:F,align:'right'});
+  const a=dateOf(w.a),b=dateOf(w.b),fn='Reunion_semanal_'+(kind==='ty'?'TYCMORS':'NacionalesMayoreo')+'_'+String(a.getDate()).padStart(2,'0')+'-'+String(b.getDate()).padStart(2,'0')+'_'+MABR[b.getMonth()].toLowerCase().replace('.','')+'_'+b.getFullYear();
   p.writeFile({fileName:fn+'.pptx'}).then(()=>toast('Presentación descargada'));
 }
-function D_lbl(d){return d.D.length>1?dlab(d.D[0])+' al '+dlab(d.D[d.D.length-1]):dlab(d.D[0])}
 
 /* ---------- Encabezado ---------- */
 function head(){
