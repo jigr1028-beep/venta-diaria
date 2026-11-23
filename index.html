@@ -236,7 +236,7 @@ function wkCur(ws){const i=WKSEL!=null?WKSEL:ws.findIndex(w=>st.cut>=w.a&&st.cut
 function wkUI(){
   if(!st.admin||!lastDay())return '';
   const ws=wkWeeks(),c=wkCur(ws);
-  return `<div class="field">Semana <select id="wksel">${ws.map((w,i)=>`<option value="${i}" ${i===c?'selected':''}>${w.label}</option>`).join('')}</select></div><div class="field">Presentación semanal<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" data-wkppt="week" type="button">⬇ Reunión semanal</button><button class="btn" data-wkppt="month" type="button">⬇ Acumulado del mes</button></div></div>`
+  return `<div class="field">Semana <select id="wksel">${ws.map((w,i)=>`<option value="${i}" ${i===c?'selected':''}>${w.label}</option>`).join('')}</select></div><div class="field">Presentación semanal<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" data-wkppt="nm" type="button">⬇ Nacionales y Mayoreo</button><button class="btn" data-wkppt="ty" type="button">⬇ TYCMORS</button><button class="btn" data-wkppt="month" type="button">⬇ Mensual (todos)</button></div></div>`
 }
 document.addEventListener('change',e=>{if(e.target.id==='wksel')WKSEL=+e.target.value});
 document.addEventListener('click',e=>{const b=e.target.closest('[data-wkppt]');if(b)wkPpt(b.dataset.wkppt)});
@@ -263,7 +263,7 @@ const WK_BAND='iVBORw0KGgoAAAANSUhEUgAAB4EAAABcCAIAAADvWVR1AACPlklEQVR42uz9d4Bs2
 function wkPpt(mode){
   if(typeof PptxGenJS==='undefined'){toast('No se pudo cargar el generador de presentaciones');return}
   const ws=wkWeeks(),w=ws[wkCur(ws)];if(!w){toast('Todavía no hay ventas capturadas');return}
-  const MM=mode==='month',IDS=['nac','my','ty'];
+  const MM=mode==='month',IDS=mode==='ty'?['ty']:mode==='nm'?['nac','my']:['nac','my','ty'];
   const wk=MM?{days:Array.from({length:w.b},(_,i)=>i+1),a:1,b:w.b}:w;
   const dAll=wkData(wk,IDS);if(!dAll.segs.length){toast('No hay ventas capturadas en ese periodo');return}
   const title=dAll.segs.map(g=>g.s.name).join(', ').replace(/, ([^,]*)$/,' y $1');
@@ -297,7 +297,7 @@ function wkPpt(mode){
   s.addText(title,{x:2,y:4.75,w:9.3,h:0.5,fontSize:24,bold:true,color:'0B5FD8',fontFace:F,align:'center'});
   s.addText(MM?'Resultados del mes':'Reunión semanal de resultados',{x:3,y:5.3,w:7.3,h:0.55,fontSize:28,bold:true,color:'0B5FD8',fontFace:F,align:'center'});
   s.addText(per,{x:3,y:5.95,w:7.3,h:0.4,fontSize:15,color:MUT,fontFace:F,align:'center'});
-  const part=(d,kind)=>{
+  const part=(d,kind,mid)=>{
   const T=d.T,multi=d.segs.length>1;
   const head2=MM?(kind==='ty'?'TYCMORS lleva '+fm(T.cum)+' en el mes: '+pc(T.ritmo)+' de lo que tocaba al día '+d.end:d.segs.map(g=>g.s.name+' '+pc(g.T.ritmo)).join(' · ')+' de lo que tocaba al día '+d.end):(kind==='ty'?'TYCMORS vendió '+fm(T.wv)+' en la semana: '+pc(T.wp)+' del objetivo semanal':d.segs.map(g=>g.s.name+' '+pc(g.T.wp)).join(' · ')+' del objetivo semanal');
   s=slide(head2,'Fuente: captura de venta diaria, corte al día hábil '+d.end+' ('+dlab(d.end,1)+').'+(MM?'':' Objetivo semanal = objetivo diario × días hábiles de la semana.'));
@@ -312,6 +312,7 @@ function wkPpt(mode){
   if(multi)cs.push([fk(T.cum),d.segs.map(g=>g.s.name).join(' + '),'Venta acumulada del mes contra '+fm(T.o)+' de objetivo combinado.',NAVY]);
   else{cs.push([T.n+' de '+T.tot,'Ejecutivos en ritmo','Acumulado igual o mayor al objetivo del día '+d.end+'.',NAVY]);cs.push([fd(T.dif),'Contra el ritmo','Objetivo a hoy: '+fm(T.oa)+'.',T.dif<0?BAD:GOOD])}
   cs.slice(0,3).forEach((c,i)=>card(s,9.2,1.15+i*1.85,3.65,1.7,c[0],c[1],c[2],c[3]));
+  if(mid)mid();
   // 4 por ejecutivo
   const byW=d.all.slice().sort((a,b)=>b.wv-a.wv),cum_n=d.all.filter(x=>x.wp>=1).length,topW=d.all.slice().sort((a,b)=>b.wp-a.wp)[0];
   s=slide(cum_n+' de '+d.all.length+' ejecutivos cumplieron su objetivo semanal; '+topW.n+' lidera con '+pc(topW.wp),'Venta de la semana contra el objetivo semanal de cada ejecutivo ('+per.split(' · ')[0]+').');
@@ -412,14 +413,12 @@ function wkPpt(mode){
     card(s,9.6,1.15,3.25,1.7,pc(best.t.wp),'Mejor semana','Del '+dlab(best.x.a)+' al '+dlab(best.x.b)+': '+fk(best.t.wv)+' vendidos.',GOOD);
     card(s,9.6,3.0,3.25,1.7,pc(last.t.wp),'Última semana','Del '+dlab(last.x.a)+' al '+dlab(last.x.b)+': '+fk(last.t.wv)+' contra '+fk(last.t.wo)+'.',col(last.t.wp));
     card(s,9.6,4.85,3.25,1.7,fk(dAll.T.cum),'Acumulado del mes',pc(dAll.T.pm,1)+' del objetivo de '+fk(dAll.T.o)+'.',NAVY);NOMAP=false};
-  resumen(dAll);
-  dia(dAll);
-  if(MM)semanal();
-  const dn=wkData(wk,['nac','my']);if(dn.segs.length)part(dn,'nm');
-  const dt=wkData(wk,['ty']);if(dt.segs.length)part(dt,'ty');
-  recon(dAll);
-  opp(dAll);
-  const a=dateOf(wk.a),b=dateOf(wk.b),mn=MABR[b.getMonth()].toLowerCase().replace('.',''),fn=MM?'Resultados_mes_'+mn+'_'+b.getFullYear()+'_al_dia_'+String(b.getDate()).padStart(2,'0'):'Reunion_semanal_'+String(a.getDate()).padStart(2,'0')+'-'+String(b.getDate()).padStart(2,'0')+'_'+mn+'_'+b.getFullYear();
+  if(MM){resumen(dAll);dia(dAll);semanal();
+    const dn=wkData(wk,['nac','my']);if(dn.segs.length)part(dn,'nm');
+    const dt=wkData(wk,['ty']);if(dt.segs.length)part(dt,'ty');
+    recon(dAll);opp(dAll)}
+  else{part(dAll,mode,()=>dia(dAll));recon(dAll);opp(dAll)}
+  const a=dateOf(wk.a),b=dateOf(wk.b),mn=MABR[b.getMonth()].toLowerCase().replace('.',''),fn=MM?'Resultados_mes_'+mn+'_'+b.getFullYear()+'_al_dia_'+String(b.getDate()).padStart(2,'0'):'Reunion_semanal_'+(mode==='ty'?'TYCMORS':'NacionalesMayoreo')+'_'+String(a.getDate()).padStart(2,'0')+'-'+String(b.getDate()).padStart(2,'0')+'_'+mn+'_'+b.getFullYear();
   p.writeFile({fileName:fn+'.pptx'}).then(()=>toast('Presentación descargada'));
 }
 
