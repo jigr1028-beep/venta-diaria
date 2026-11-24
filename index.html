@@ -162,7 +162,7 @@ function pickDB(){
 function touch(){DB.updated=new Date().toISOString();lsSet('draft',JSON.stringify(DB));st.dirty=true}
 function setMonth(k){
   MKEY=k;const M=MONTHS[k];HAB=M.hab;COSTO=M.costo;SEGS[0].rows=M.nac;SEGS[1].rows=M.ty;SEGS[2].rows=M.my;
-  st.sel=null;st.cut=lastDay();st.capDay=Math.min(HAB,st.cut||1);
+  st.sel=null;st.msel=[];st.cut=lastDay();st.capDay=Math.min(HAB,st.cut||1);
 }
 function startMonth(){const ks=Object.keys(MONTHS).sort(),n=new Date(),nk=n.getFullYear()+'-'+String(n.getMonth()+1).padStart(2,'0');return MONTHS[nk]?nk:ks[ks.length-1]}
 function download(){const b=new Blob([JSON.stringify(DB)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='datos.json';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1500);toast('datos.json descargado. Súbelo a Netlify para publicar.')}
@@ -513,6 +513,62 @@ const lmCum=(L,n)=>{let s=0;for(let i=1;i<=n;i++)s+=lmD(L,i);return s};
 const hasCalls=r=>!!(r.ll&&r.ll.m>0);
 const hasCli=r=>!!(r.cl&&r.cl.asig>0);
 
+const MCOL=['#2a78d6','#eb6834','#7b4fd1','#1baf7a','#d6336c','#b58900','#0ca5b0','#6b7480'];
+function selList(){return (st.msel||[]).map(k=>{const [sid,i]=k.split(':'),s=SEGS.find(x=>x.id===sid),r=s&&s.rows[+i];return r?{s,r,key:k}:null}).filter(Boolean)}
+function isMulti(){return selList().length>1}
+function topKpis(){return isMulti()?kpisMulti():(st.sel&&selRow()?kpisSel():kpis())}
+function topChart(){return isMulti()?chartMulti():(st.sel&&selRow()?chartSel():chart())}
+function kpisMulti(){
+  const L=selList(),cs=L.map(x=>calc(x.r,st.cut)),sum=k=>cs.reduce((a,c)=>a+c[k],0),o=L.reduce((a,x)=>a+x.r.o,0),acum=sum('acum'),oa=sum('oa'),last=sum('last'),od=sum('od'),dif=acum-oa,n=cs.filter(c=>c.ritmo>=1).length;
+  const k=(l,v,nn,cls='')=>`<div class="kpi"><div class="l">${l}</div><div class="v ${cls}">${v}</div><div class="n">${nn}</div></div>`;
+  return `<div class="kpis">${k('Venta acumulada · '+L.length+' ejecutivos',mm(acum),'de '+mm(o)+' · '+pc(o?acum/o:0,1)+' del objetivo')}
+  ${k('Contra el ritmo',(dif<0?'−':'+')+mm(Math.abs(dif)),'objetivo a hoy '+mm(oa)+' · cumplimiento '+pc(oa?acum/oa:0,1),dif<0?'neg':'pos')}
+  ${k('Venta del día '+st.cut+' · '+dlab(st.cut),mm(last),pc(od?last/od:0)+' del objetivo diario ('+mm(od)+')')}
+  ${k('Ejecutivos en ritmo',n+' de '+L.length,'acumulado ≥ objetivo a hoy')}</div>`
+}
+function chartMulti(){
+  const SL=selList(),cut=st.cut,cm=st.cm,W=760,H=210,m={l:50,r:cm==='acum'?150:10,t:12,b:24},iw=W-m.l-m.r,ih=H-m.t-m.b,X=d=>m.l+d/HAB*iw;
+  const cols=SL.map((x,i)=>MCOL[i%MCOL.length]);let g='',leg='',Y,ymax,ymin=0,step;
+  const sg=v=>(v<0?'−':'')+pc(Math.abs(v));
+  if(cm==='dia'){
+    const P=SL.map(x=>{const od=x.r.o/HAB,a=[];for(let d=1;d<=cut;d++)a.push(od?(x.r.d[d-1]||0)/od:0);return a});
+    const mx=Math.max(1,...P.flat())*1.1,mn=Math.min(0,...P.flat());step=mx<=2?.25:mx<=4?.5:1;ymax=Math.ceil(mx/step)*step;ymin=mn<0?-Math.ceil(-mn*1.1/step)*step:0;
+    Y=v=>m.t+ih-((v-ymin)/(ymax-ymin))*ih;
+    for(let v=ymin;v<=ymax+1e-9;v+=step)g+=`<line x1="${m.l}" x2="${m.l+iw}" y1="${Y(v)}" y2="${Y(v)}" stroke="${v===0&&ymin<0?'var(--muted)':'var(--line)'}"/><text x="${m.l-8}" y="${Y(v)+4}" text-anchor="end" font-size="11" fill="var(--muted)">${sg(v)}</text>`;
+    for(let d=5;d<=HAB;d+=5)g+=`<text x="${X(d-.5)}" y="${H-7}" text-anchor="middle" font-size="11" fill="var(--muted)">${d}</text>`;
+    g+=`<line x1="${m.l}" x2="${m.l+iw}" y1="${Y(1)}" y2="${Y(1)}" stroke="var(--ink)" stroke-width="1.5" stroke-dasharray="5 4"/>`;
+    P.forEach((a,i)=>{g+=`<path d="${a.map((v,d)=>(d?'L':'M')+(X(d+.5)).toFixed(1)+','+Y(v).toFixed(1)).join('')}" fill="none" stroke="${cols[i]}" stroke-width="2" stroke-linejoin="round"/>`;a.forEach((v,d)=>{g+=`<circle cx="${X(d+.5).toFixed(1)}" cy="${Y(v).toFixed(1)}" r="2.6" fill="${cols[i]}"/>`})});
+    leg=SL.map((x,i)=>`<span><i class="dot" style="background:${cols[i]}"></i>${x.r.n}</span>`).join('')+`<span><i class="ldash" style="border-color:var(--ink)"></i>Objetivo diario (100%)</span>`;
+    window.__mdata={cut,SL,P,cols,W,m,iw,mode:'dia'};
+  }else{
+    const S=SL.map(x=>{let a=0;const out=[0];for(let i=0;i<cut;i++){a+=x.r.d[i]||0;out.push(x.r.o?a/x.r.o:0)}return out});
+    ymax=Math.ceil(Math.max(1,...S.flat())*4)/4;Y=v=>m.t+ih-(v/ymax)*ih;
+    for(let v=0;v<=ymax+1e-9;v+=.25)g+=`<line x1="${m.l}" x2="${m.l+iw}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--line)"/><text x="${m.l-8}" y="${Y(v)+4}" text-anchor="end" font-size="11" fill="var(--muted)">${pc(v)}</text>`;
+    for(let d=5;d<=HAB;d+=5)g+=`<text x="${X(d)}" y="${H-7}" text-anchor="middle" font-size="11" fill="var(--muted)">${d}</text>`;
+    g+=`<line x1="${X(0)}" y1="${Y(0)}" x2="${X(HAB)}" y2="${Y(1)}" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="5 4"/>`;
+    S.forEach((a,i)=>{g+=`<path d="${a.map((v,d)=>(d?'L':'M')+X(d).toFixed(1)+','+Y(v).toFixed(1)).join('')}" fill="none" stroke="${cols[i]}" stroke-width="2.2" stroke-linejoin="round"/>`});
+    const ends=S.map((a,i)=>({i,y:Y(a[cut]),v:a[cut]})).sort((a,b)=>a.y-b.y);for(let k=1;k<ends.length;k++)if(ends[k].y-ends[k-1].y<12)ends[k].y=ends[k-1].y+12;
+    ends.forEach(e=>{g+=`<circle cx="${X(cut)}" cy="${Y(S[e.i][cut])}" r="3" fill="${cols[e.i]}"/><text x="${X(cut)+8}" y="${e.y+4}" font-size="11" fill="${cols[e.i]}" font-weight="700">${SL[e.i].r.n.replace(/\s*\(.*$/,'').slice(0,13)} ${pc(e.v)}</text>`});
+    leg=SL.map((x,i)=>`<span><i class="dot" style="background:${cols[i]}"></i>${x.r.n}</span>`).join('')+`<span><i class="ldash" style="border-color:var(--muted)"></i>Ritmo ideal (100% al día ${HAB})</span>`;
+    window.__mdata={cut,SL,S,cols,W,m,iw,mode:'acum'};
+  }
+  g+=`<line id="mx" x1="0" x2="0" y1="${m.t}" y2="${m.t+ih}" stroke="var(--muted)" stroke-dasharray="3 3" visibility="hidden"/>`;
+  const tg=`<div class="seg sm" role="group">${[['dia','Cumplimiento diario'],['acum','Avance acumulado']].map(([id,n])=>`<button data-cm="${id}" aria-pressed="${cm===id}">${n}</button>`).join('')}</div>`;
+  return `<div class="panel chartp"><div class="cols2" style="margin-bottom:4px"><h2>Comparando ${SL.length} ejecutivos <span style="font-weight:400;color:var(--muted)">· ${cm==='dia'?'% de su objetivo diario cada día':'avance acumulado contra su objetivo del mes'}</span></h2><div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">${tg}<button class="btn ghost" data-clear="1" style="padding:4px 10px">Ver todos</button></div></div>
+  <div class="legend">${leg}</div><div class="chartbox" id="cb"><svg class="chart" viewBox="0 0 ${W} ${H}" role="img">${g}</svg><div class="tip" id="tip" hidden></div></div></div>`
+}
+function bindMulti(){
+  const cb=$('#cb'),D=window.__mdata;if(!cb||!isMulti()||!D)return;
+  const svg=cb.querySelector('svg'),tip=$('#tip'),mx=$('#mx');
+  cb.onmousemove=ev=>{const r=svg.getBoundingClientRect(),x=(ev.clientX-r.left)/r.width*D.W;let d=D.mode==='dia'?Math.floor((x-D.m.l)/(D.iw/HAB))+1:Math.round((x-D.m.l)/(D.iw/HAB));
+    const lo=D.mode==='dia'?1:1;if(d<lo||d>D.cut){tip.hidden=true;mx.setAttribute('visibility','hidden');return}
+    const gx=D.m.l+(D.mode==='dia'?d-.5:d)/HAB*D.iw;mx.setAttribute('x1',gx);mx.setAttribute('x2',gx);mx.setAttribute('visibility','visible');
+    const rows=D.SL.map((s,i)=>{const v=s.r.d[d-1]||0,od=s.r.o/HAB,ac=sumTo(s.r,d);return `<div><span><i class="dot" style="background:${D.cols[i]}"></i> ${s.r.n}</span><span>${D.mode==='dia'?money(v)+' · '+pc(od?v/od:0):pc(s.r.o?ac/s.r.o:0,1)+' · '+money(ac)}</span></div>`}).join('');
+    tip.innerHTML=`<b>Día ${d} · ${dlab(d)}</b>${rows}`;tip.hidden=false;
+    const px=gx/D.W*r.width;tip.style.left=Math.max(4,Math.min(cb.clientWidth-tip.offsetWidth-4,px+12))+'px';tip.style.top='8px'};
+  cb.onmouseleave=()=>{tip.hidden=true;mx.setAttribute('visibility','hidden')};
+}
+
 function selRow(){if(!st.sel)return null;const [sid,i]=st.sel.split(':'),s=SEGS.find(x=>x.id===sid),r=s&&s.rows[+i];return r?{s,r,ty:hasX(s)}:null}
 function kpisSel(){
   const {s,r,ty}=selRow(),c=calc(r,st.cut),proy=c.acum/st.cut*HAB;
@@ -603,7 +659,7 @@ function callsTable(list,seg){
   const info=r=>{const L=r.ll||{m:0,d:[]},C=r.cl||{asig:0,d:[]},hoy=L.d[st.cut-1]||0,ac=L.d.slice(0,st.cut).reduce((a,b)=>a+(b||0),0),cc=C.d[st.cut-1]||0;return {L,C,hoy,ac,cc}};
   const bar=p=>`<span class="pb">${pc(p)}<i><s style="width:${Math.min(Math.max(p,0),1)*100}%;background:${seg.c}"></s></i></span>`;
   const rows=list.map(({r})=>{const {L,C,hoy,ac,cc}=info(r),idx=seg.rows.indexOf(r),hc=L.m>0,hl=C.asig>0;
-    return `<tr class="pick ${st.sel===seg.id+':'+idx?'on':''}" data-sel="${seg.id}:${idx}"><td class="name" title="${r.n}">${r.n}</td><td>${hc?lmD(L,st.cut):'—'}</td><td>${hc?hoy:'—'}</td><td>${hc?YN(hoy>=lmD(L,st.cut)):'—'}</td><td>${hc?bar(ac/lmCum(L,st.cut)):'—'}</td><td>${hl?C.asig:'—'}</td><td>${hl?cc:'—'}</td><td>${hl?bar(cc/C.asig):'—'}</td><td>${hl?C.asig-cc:'—'}</td></tr>`}).join('');
+    return `<tr class="pick ${(st.msel||[]).includes(seg.id+':'+idx)?'on':''}" data-sel="${seg.id}:${idx}"><td class="name" title="${r.n}">${r.n}</td><td>${hc?lmD(L,st.cut):'—'}</td><td>${hc?hoy:'—'}</td><td>${hc?YN(hoy>=lmD(L,st.cut)):'—'}</td><td>${hc?bar(ac/lmCum(L,st.cut)):'—'}</td><td>${hl?C.asig:'—'}</td><td>${hl?cc:'—'}</td><td>${hl?bar(cc/C.asig):'—'}</td><td>${hl?C.asig-cc:'—'}</td></tr>`}).join('');
   const T=list.reduce((a,{r})=>{const x=info(r);if(x.L.m>0){a.m+=lmD(x.L,st.cut);a.cm+=lmCum(x.L,st.cut);a.h+=x.hoy;a.ac+=x.ac}if(x.C.asig>0){a.A+=x.C.asig;a.c+=x.cc}return a},{m:0,cm:0,h:0,ac:0,A:0,c:0});
   return `<h2 style="margin:20px 0 2px;font-size:14px">Llamadas y cartera de clientes</h2><div class="hint">Llamadas: meta fija por ejecutivo. Clientes con compra: clientes de su cartera que ya compraron en el mes, al corte del día ${st.cut}.</div>
   <div class="scroll"><table><thead><tr><th>Ejecutivo</th><th>Meta llamadas del día</th><th>Llamadas día ${st.cut} <span style="font-weight:400">· ${dlab(st.cut)}</span></th><th>Cumple hoy</th><th>% meta de llamadas del mes</th><th>Clientes asignados</th><th>Con compra</th><th>Penetración</th><th>Sin compra</th></tr></thead><tbody>${rows}<tr class="tot"><td>Total ${seg.name}</td><td>${T.m||'—'}</td><td>${T.m?T.h:'—'}</td><td>${T.m?YN(T.h>=T.m):'—'}</td><td>${T.m?pc(T.ac/T.cm):'—'}</td><td>${T.A||'—'}</td><td>${T.A?T.c:'—'}</td><td>${T.A?pc(T.c/T.A):'—'}</td><td>${T.A?T.A-T.c:'—'}</td></tr></tbody></table></div>`
@@ -616,14 +672,14 @@ function execTable(){
     let list=s.rows.map(r=>({r,c:calc(r,st.cut)}));
     if(st.sort==='ritmo')list.sort((a,b)=>b.c.ritmo-a.c.ritmo);
     const need=c=>rem>0?Math.max(0,(c.od*HAB-c.acum)/rem)/COSTO:0;
-    let body=list.map(({r,c})=>`<tr class="pick ${st.sel===s.id+':'+s.rows.indexOf(r)?'on':''}" data-sel="${s.id}:${s.rows.indexOf(r)}" title="Clic para ver su avance arriba"><td class="name" title="${r.n}">${(m=>m?`<span class="medal" title="${m[1]}">${m[0]}</span> `:'<span class="medal" style="visibility:hidden">⭐</span> ')(medal(c))}${r.n}</td><td>${money(r.o)}</td><td>${money(c.last)}</td>
+    let body=list.map(({r,c})=>`<tr class="pick ${(st.msel||[]).includes(s.id+':'+s.rows.indexOf(r))?'on':''}" data-sel="${s.id}:${s.rows.indexOf(r)}" title="Clic para ver su avance arriba; con varios clics los compara"><td class="name" title="${r.n}">${(m=>m?`<span class="medal" title="${m[1]}">${m[0]}</span> `:'<span class="medal" style="visibility:hidden">⭐</span> ')(medal(c))}${r.n}</td><td>${money(r.o)}</td><td>${money(c.last)}</td>
       <td>${pc(c.pl)}</td><td>${YN(c.last>=c.od-0.005)}</td><td>${money(c.acum)}</td>
       <td><span class="pb">${pc(c.pm)}<i><s style="width:${Math.min(c.pm,1)*100}%;background:${s.c}"></s></i></span></td>
       <td class="${c.dif<0?'neg':'pos'}">${sgn(c.dif)}</td><td>${money(c.avg)}</td>${ty?`<td>${rem>0?Math.ceil(need(c)).toLocaleString('es-MX'):'—'}</td><td>${Math.round(c.avg/COSTO).toLocaleString('es-MX')}</td>`:''}<td>${pill(c.ritmo)}</td></tr>`).join('');
     const tn=list.reduce((a,x)=>a+need(x.c),0);
     body+=`<tr class="tot"><td>Total ${s.name}</td><td>${money(T.o)}</td><td>${money(T.last)}</td><td>${pc(T.pl)}</td><td>${YN(T.last>=T.od)}</td><td>${money(T.acum)}</td>
      <td><span class="pb">${pc(T.pm)}<i><s style="width:${Math.min(T.pm,1)*100}%;background:${s.c}"></s></i></span></td><td class="${T.dif<0?'neg':'pos'}">${sgn(T.dif)}</td><td>${money(T.avg)}</td>${ty?`<td>${rem>0?Math.ceil(tn).toLocaleString('es-MX'):'—'}</td><td>${Math.round(T.avg/COSTO).toLocaleString('es-MX')}</td>`:''}<td>${pill(T.ritmo)}</td></tr>`;
-    const hint=k===0?`⭐ Cumplió el objetivo del día · 🚀 Vendió 150% o más del objetivo · 🏆 Vendió el doble o más del objetivo · Haz clic en un ejecutivo para ver su avance arriba`:'';
+    const hint=k===0?`⭐ Cumplió el objetivo del día · 🚀 Vendió 150% o más del objetivo · 🏆 Vendió el doble o más del objetivo · Haz clic en uno o varios ejecutivos para ver su avance arriba`:'';
     const lh=ty?`<th class="w" title="Lo que falta del objetivo ÷ días hábiles restantes ÷ costo promedio de llanta">Llantas/día necesarias</th><th class="w" title="Promedio diario vendido ÷ costo promedio de llanta">Llantas/día vendidas</th>`:'';
     return `<div class="panel"><h2><span class="gname"><i class="dot" style="background:${s.c}"></i>${s.name}</span></h2>
     <div class="hint">${hint}${ty?` Llantas calculadas con costo promedio de ${money(COSTO)} (editable en Configuración).`:''}</div>
@@ -633,7 +689,7 @@ function tablero(){
   const ld=lastDay();
   if(!ld||!dataSegs().length)return `<div class="panel"><h2>Todavía no hay ventas en ${mlabel(MKEY)}</h2><div class="hint" style="margin:0">${st.admin?'Abre Captura del día y registra el acumulado del día hábil 1.':'La venta del mes aparecerá aquí en cuanto se capture el primer día.'}</div></div>`;
   return `<div class="bar"><label class="field">Corte al día hábil <select id="cut">${Array.from({length:ld},(_,i)=>`<option value="${i+1}" ${i+1===st.cut?'selected':''}>${i+1} · ${dlab(i+1,1)}</option>`).join('')}</select></label>
-  <div class="field">Orden <div class="seg sm" role="group" aria-label="Orden de ejecutivos">${[['manual','Manual'],['ritmo','Por ritmo']].map(([id,n])=>`<button data-sort="${id}" aria-pressed="${st.sort===id}">${n}</button>`).join('')}</div></div>${wkUI()}</div>`+`<div class="top">${st.sel&&selRow()?kpisSel():kpis()}${st.sel&&selRow()?chartSel():chart()}</div>`+execTable();
+  <div class="field">Orden <div class="seg sm" role="group" aria-label="Orden de ejecutivos">${[['manual','Manual'],['ritmo','Por ritmo']].map(([id,n])=>`<button data-sort="${id}" aria-pressed="${st.sort===id}">${n}</button>`).join('')}</div></div>${wkUI()}</div>`+`<div class="top">${topKpis()}${topChart()}</div>`+execTable();
 }
 
 /* ---------- Captura ---------- */
@@ -749,7 +805,7 @@ function render(){
   head();
   const v=$('#view');
   v.innerHTML=st.tab==='tablero'?tablero():st.tab==='captura'?captura():st.tab==='config'?config():historial();
-  if(st.tab==='tablero'){bindChart();bindSel()}
+  if(st.tab==='tablero'){bindChart();bindSel();bindMulti()}
   if(st.tab==='captura')capRecalc();
 }
 const taps=[];
@@ -766,7 +822,7 @@ document.addEventListener('click',e=>{
     const o=Math.round(parseFloat((prompt('Objetivo mensual de '+n+' en '+mlabel(MKEY)+' (solo número, ej. 1500000):','0')||'0').replace(/[$,\s]/g,''))||0);
     s.rows.push({n,o,d:pad31([])});touch();render();toast(n+' agregado a '+s.name+'. Captura sus ventas desde Captura del día.')}
   else if(b.dataset.rm){const [sid,i]=b.dataset.rm.split(':'),s=SEGS.find(x=>x.id===sid),r=s.rows[+i];
-    if(r&&confirm('¿Quitar a '+r.n+' de '+s.name+' en '+mlabel(MKEY)+'? Se borran sus datos de este mes. Los meses anteriores no cambian.')){s.rows.splice(+i,1);st.sel=null;st.cut=lastDay();touch();render()}}
+    if(r&&confirm('¿Quitar a '+r.n+' de '+s.name+' en '+mlabel(MKEY)+'? Se borran sus datos de este mes. Los meses anteriores no cambian.')){s.rows.splice(+i,1);st.sel=null;st.msel=[];st.cut=lastDay();touch();render()}}
   else if(b.dataset.mv){const [sid,i,dx]=b.dataset.mv.split(':'),s=SEGS.find(x=>x.id===sid),a=+i,c=a+ +dx;if(c>=0&&c<s.rows.length){[s.rows[a],s.rows[c]]=[s.rows[c],s.rows[a]];render()}}
   else if(b.id==='habcalc'){const [y,mo]=MKEY.split('-').map(Number);MONTHS[MKEY].hab=HAB=habNet(y,mo-1);render()}
   else if(b.id==='newmonth'){const nk=nextKey(Object.keys(MONTHS).sort().pop());newMonth(MKEY,nk);setMonth(nk);st.tab='config';render();toast(mlabel(nk)+' creado con los ejecutivos y objetivos del mes anterior')}
@@ -779,11 +835,11 @@ document.addEventListener('click',e=>{
   else if(b.id==='capclr'){document.querySelectorAll('#view tr[data-i] input').forEach(i=>i.value='');capRecalc()}
 });
 document.addEventListener('click',e=>{
-  if(e.target.closest('[data-clear]')){st.sel=null;render();return}
+  if(e.target.closest('[data-clear]')){st.sel=null;st.msel=[];render();return}
   if(e.target.closest('[data-cli]')){st.cli=st.cli===false;render();return}
   if(e.target.closest('[data-calls]')){st.calls=st.calls===false;render();return}
   const tr=e.target.closest('tr[data-sel]');
-  if(tr&&!e.target.closest('button,input,select')){st.sel=st.sel===tr.dataset.sel?null:tr.dataset.sel;render();if(st.sel)window.scrollTo({top:0,behavior:'smooth'})}});
+  if(tr&&!e.target.closest('button,input,select')){const k=tr.dataset.sel,a=st.msel||[];st.msel=a.includes(k)?a.filter(x=>x!==k):a.concat(k);st.sel=st.msel.length===1?st.msel[0]:null;render();if(st.msel.length)window.scrollTo({top:0,behavior:'smooth'})}});
 document.addEventListener('click',e=>{
   const [y,mo]=MKEY.split('-').map(Number),M=MONTHS[MKEY];
   const del=e.target.closest('[data-nolabdel]');
