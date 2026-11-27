@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex">
+<title>Cotizaciones y prefacturas | LLYASA</title>
+<link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f4f5f7;--card:#fff;--ink:#141a26;--ink2:#566074;--line:#e1e4ea;--navy:#042c53;--blue:#0652ca;--yellow:#fab219;--blueSoft:#dce8fb;--green:#12784a;--greenSoft:#e0f3e8;--amber:#8a5a00;--amberSoft:#fdf0d3;--red:#b3261e;--redSoft:#fbe3e1;color-scheme:light}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 Ubuntu,'Segoe UI',system-ui,sans-serif}
+select,input,textarea,button{font:inherit;color:inherit}
+select,input,textarea{background:#fff;color:var(--ink);border:1px solid var(--line);border-radius:7px;padding:7px 9px}
+button{cursor:pointer;border:1px solid var(--line);background:#fff;border-radius:7px;padding:6px 11px}
+button:hover{border-color:var(--blue)}:focus-visible{outline:2px solid var(--blue);outline-offset:1px}
+main{max-width:1240px;margin:0 auto;padding:0 16px 32px}
+.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px}
+.tile{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.tile span{color:var(--ink2);font-size:12px}.tile b{display:block;font-size:24px;font-weight:650}.tile em{font-style:normal;color:var(--ink2);font-size:12px}
+button.tile{text-align:left}
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;align-items:center}.filters input{flex:1;min-width:200px}
+.list{background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.row{display:grid;grid-template-columns:minmax(240px,1fr) 84px 120px 250px 142px;gap:12px;padding:10px 14px;border-top:1px solid var(--line);align-items:center}
+.row:first-child{border-top:0}.row.head{background:#fafbfc;font-size:12px;color:var(--ink2);font-weight:600;padding-top:8px;padding-bottom:8px}
+.cli{min-width:0}.cli b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cli small{color:var(--ink2);display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cli a{color:var(--blue);cursor:pointer;font-size:12px}
+.num{text-align:right;font-variant-numeric:tabular-nums}
+.pill{display:inline-block;border-radius:99px;padding:1px 8px;font-size:11px;font-weight:600;white-space:nowrap}
+.a0{background:var(--greenSoft);color:var(--green)}.a1{background:#eef0f4;color:var(--ink2)}.a2{background:var(--amberSoft);color:var(--amber)}.a3{background:var(--redSoft);color:var(--red)}
+.pri{background:var(--navy);color:#fff}.dup{background:var(--amberSoft);color:var(--amber)}
+.acts{display:flex;gap:6px}.send{flex:1;line-height:1.2;min-height:42px}
+.send small{display:block;font-size:10px}.send.done{background:var(--greenSoft);border-color:var(--green);color:var(--green);font-weight:600}
+.firma{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--blue);border-radius:10px;padding:10px 14px;margin-bottom:14px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.firma.falta{border-left-color:#d0342c;background:#fff8f7}.firma input{min-width:260px;flex:0 1 340px}
+.firmas{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:16px}
+.firmas label{font-size:12px;color:var(--ink2);font-weight:600}.firmas input{display:block;width:100%;margin-top:3px;font-weight:400}
+.empty{padding:30px;text-align:center;color:var(--ink2)}
+.more{display:block;margin:12px auto}
+table{width:100%;border-collapse:collapse;background:var(--card);font-variant-numeric:tabular-nums}
+th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+th{font-size:12px;color:var(--ink2);background:#fafbfc}th:first-child,td:first-child{text-align:left}
+tr.click{cursor:pointer}tr.click:hover{background:#f6f9fe}
+.scroll{overflow-x:auto;border:1px solid var(--line);border-radius:10px;margin-bottom:16px;background:var(--card)}
+.meter{display:inline-block;width:70px;height:8px;background:var(--blueSoft);border-radius:4px;margin-right:7px;overflow:hidden}
+.meter i{display:block;height:100%;background:var(--blue);border-radius:0 4px 4px 0}
+#veil{position:fixed;inset:0;background:#0b122066;display:none;z-index:5}
+#drawer{position:fixed;top:0;right:0;bottom:0;width:min(480px,100%);background:#fff;z-index:6;padding:18px;overflow:auto;display:none;box-shadow:-8px 0 30px #0003}
+#drawer h2{font-size:16px;margin:0 36px 2px 0}#drawer .x{position:absolute;top:12px;right:12px}
+#drawer label{display:block;font-size:12px;color:var(--ink2);margin-top:10px}
+#drawer input,#drawer select,#drawer textarea{width:100%}#drawer textarea{height:190px;resize:vertical}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.hist{font-size:12px;color:var(--ink2);padding-left:18px}
+.note{font-size:12px;color:var(--ink2)}
+#toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:9px 14px;border-radius:8px;display:none;z-index:9;max-width:92%}
+@media(max-width:900px){.tiles{grid-template-columns:1fr 1fr}.row{grid-template-columns:1fr auto}.row.head{display:none}.cli,.acts{grid-column:1/-1}.bar label,.bar select{width:100%}}
+
+main{max-width:1240px;margin:0 auto;padding:0 16px 32px}[hidden]{display:none!important}
+.site{background:var(--blue);color:#fff}.site .in{max-width:1240px;margin:0 auto;padding:22px 16px;display:flex;gap:16px 32px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.logo{display:block;height:46px;width:auto;max-width:100%}.navs{display:flex;gap:6px 26px;flex-wrap:wrap}
+.tab,.tab:hover{background:none;border:0;border-bottom:2px solid transparent;border-radius:0;color:#fff;font-weight:700;font-size:15px;padding:6px 0;text-decoration:none;white-space:nowrap}.tab[aria-selected=true]{border-bottom-color:#fff}
+h1{font-size:30px;font-weight:500;margin:24px 0 2px;line-height:1.2}.sub{color:var(--ink2);font-size:13px;margin-bottom:16px}
+.bar{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:14px}.bar label{font-size:13px}.bar select{display:block;margin-top:3px;min-width:260px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px;margin-bottom:14px;max-width:760px}.card h2{font-size:16px;margin:0 0 6px}.card input{max-width:100%}
+.btn{background:var(--blue);border-color:var(--blue);color:#fff;font-weight:700}button:disabled{opacity:.5;cursor:default}.aviso{background:var(--amberSoft);color:var(--amber);border-radius:8px;padding:9px 12px;margin-bottom:12px;font-size:13px}
+.row .cli small:last-child{white-space:normal}
+button.tile.on{border-color:var(--blue);box-shadow:inset 0 -3px 0 var(--yellow)}
+</style></head><body>
+<header class="site"><div class="in"><img class="logo" alt="LLYASA Llantas + Taller" src="data:image/png;base64,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"><nav class="navs" id="tabs" aria-label="Secciones"></nav></div></header>
+<main><h1>Cotizaciones y prefacturas</h1><div class="sub" id="sub"></div><div class="bar" id="bar" hidden><label>Ejecutivo<select id="ej"></select></label></div><div id="view"></div>
+<p class="note">Por ahora los checks, estados y contactos se guardan en cada navegador. El check indica que se abrió el mensaje; no confirma el envío.</p></main>
+<div id="veil"></div><aside id="drawer" aria-label="Mensaje"></aside><div id="toast" role="status"></div>
+<script>window.__PREVIEW__=null;</script>
+<script>
+const $=s=>document.querySelector(s);
+const store={get(k,d){try{return JSON.parse(localStorage.getItem('llyasa_cot_'+k))??d}catch(e){return d}},set(k,v){try{localStorage.setItem('llyasa_cot_'+k,JSON.stringify(v))}catch(e){}}};
+const EJ=["BACHOCO","EJECUTIVO2","EJECUTIVO5","EJECUTIVO6","EJECUTIVO7","EJECUTIVO8","EJECUTIVO9","MAYOREO","NACIONALES",...[16,17,18,19,20,21,22,23,26,27,28].map(n=>'VENTAS'+n)];
+const ARCH='cotizaciones.json';
+let S=store.get('seg',{}),C=store.get('con',{}),DB={v:1,names:{},cortes:[]},ALL={C:[],P:[]},BY={},PW='',admin=false,dirty=false,existe=false,prevF='',grupo='pre';
+const dia=s=>Date.parse(s+'T00:00:00Z')/864e5;
+const dmy=s=>s.slice(8,10)+'/'+s.slice(5,7);
+const largo=s=>`${dmy(s)}/${s.slice(0,4)}`;
+const firma=e=>(DB.names[e]||'').trim();
+const quien=e=>firma(e)?`${firma(e)} · ${e}`:e;
+const actual=()=>DB.cortes[DB.cortes.length-1];
+/* ---------- Excel ---------- */
+async function unzip(buf){
+ const u=new Uint8Array(buf),v=new DataView(buf);let e=u.length-22;while(e>=0&&v.getUint32(e,true)!==0x06054b50)e--;
+ if(e<0)throw new Error('no es un archivo .xlsx');
+ const out={};let p=v.getUint32(e+16,true);
+ for(let i=0,n=v.getUint16(e+10,true);i<n;i++){
+  const m=v.getUint16(p+10,true),cs=v.getUint32(p+20,true),nl=v.getUint16(p+28,true),xl=v.getUint16(p+30,true),cl=v.getUint16(p+32,true),lo=v.getUint32(p+42,true);
+  const name=new TextDecoder().decode(u.subarray(p+46,p+46+nl)),start=lo+30+v.getUint16(lo+26,true)+v.getUint16(lo+28,true),data=u.slice(start,start+cs);
+  out[name]=async()=>new TextDecoder().decode(m?await new Response(new Blob([data]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).arrayBuffer():data);
+  p+=46+nl+xl+cl}
+ return out;
+}
+async function leerExcel(buf,nombre){
+ const z=await unzip(buf),xml=s=>new DOMParser().parseFromString(s,'application/xml'),tags=(n,t)=>[...n.getElementsByTagNameNS('*',t)];
+ const ss=z['xl/sharedStrings.xml']?tags(xml(await z['xl/sharedStrings.xml']()),'si').map(si=>tags(si,'t').filter(t=>t.parentNode.localName!=='rPh').map(t=>t.textContent).join('')):[];
+ const out={C:[],P:[]},vistos=new Set();let hojas=0;
+ for(const name of Object.keys(z).filter(n=>/^xl\/worksheets\/[^/]+\.xml$/.test(n))){
+  let head=null;
+  for(const row of tags(xml(await z[name]()),'row')){
+   const r={};
+   for(const c of tags(row,'c')){const col=(c.getAttribute('r')||'').replace(/\d/g,''),t=c.getAttribute('t'),val=tags(c,'v')[0]?.textContent;
+    r[col]=t==='s'?ss[+val]:t==='inlineStr'?tags(c,'t').map(x=>x.textContent).join(''):t==='str'?val:val==null?'':+val}
+   if(!head){const h=Object.fromEntries(Object.entries(r).map(([k,v])=>[String(v).trim(),k]));if(['Importe','Cotizacion','Fecha','Cliente','Status','Ejecutivo'].every(k=>k in h)){head=h;hojas++}continue}
+   const g=k=>r[head[k]]??'',st=String(g('Status')).toUpperCase(),tipo=st.includes('PRE')?'P':st.includes('COTIZ')?'C':null,imp=g('Importe'),f=g('Fecha');
+   if(!tipo||typeof imp!=='number'||typeof f!=='number'||!g('Cotizacion'))continue;
+   const folio=String(g('Cotizacion')).trim();if(vistos.has(tipo+folio))continue;vistos.add(tipo+folio);
+   const s=k=>String(g(k)).trim(),ant=g('Antiguedad');
+   out[tipo].push([folio,new Date(Date.UTC(1899,11,30)+Math.floor(f)*864e5).toISOString().slice(0,10),typeof ant==='number'&&tipo==='P'?ant:null,s('Cliente'),s('Referencia'),s('Sucursal'),s('Ejecutivo').toUpperCase(),Math.round(imp*100)/100,s('OC')]);
+  }
+ }
+ if(!hojas)throw new Error('no encontré las columnas Importe, Cotizacion, Fecha, Cliente, Status y Ejecutivo');
+ if(!out.C.length&&!out.P.length)throw new Error('no hay renglones de cotización ni prefactura');
+ const fechas=[...out.C,...out.P].map(r=>r[1]).sort(),M='ene feb mar abr may jun jul ago sep oct nov dic'.split(' ');
+ let f=fechas[fechas.length-1];const m=nombre.toLowerCase().match(/al[ _-]+(\d{1,2})[ _-]+(?:de[ _-]+)?([a-z]{3})/);
+ if(m&&M.includes(m[2]))f=`${f.slice(0,4)}-${String(M.indexOf(m[2])+1).padStart(2,'0')}-${m[1].padStart(2,'0')}`;
+ return{f,archivo:nombre,...out};
+}
+function agregarCorte(c){DB.cortes=DB.cortes.filter(x=>x.f!==c.f).concat(c).sort((a,b)=>a.f.localeCompare(b.f)).slice(-8);dirty=true;preparar()}
+/* ---------- cifrado ---------- */
+const b64=u=>{let s='';for(let i=0;i<u.length;i+=32768)s+=String.fromCharCode(...u.subarray(i,i+32768));return btoa(s)};
+const unb64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
+async function llave(pw,salt){const k=await crypto.subtle.importKey('raw',new TextEncoder().encode(pw),'PBKDF2',false,['deriveKey']);
+ return crypto.subtle.deriveKey({name:'PBKDF2',salt,iterations:600000,hash:'SHA-256'},k,{name:'AES-GCM',length:256},false,['encrypt','decrypt'])}
+const flujo=async(data,T)=>new Uint8Array(await new Response(new Blob([data]).stream().pipeThrough(new T('gzip'))).arrayBuffer());
+async function cifrar(pw){const salt=crypto.getRandomValues(new Uint8Array(16)),iv=crypto.getRandomValues(new Uint8Array(12));
+ const d=await crypto.subtle.encrypt({name:'AES-GCM',iv},await llave(pw,salt),await flujo(JSON.stringify(DB),CompressionStream));
+ return JSON.stringify({v:1,salt:b64(salt),iv:b64(iv),data:b64(new Uint8Array(d))})}
+async function descifrar(j,pw){const d=await crypto.subtle.decrypt({name:'AES-GCM',iv:unb64(j.iv)},await llave(pw,unb64(j.salt)),unb64(j.data));
+ return JSON.parse(new TextDecoder().decode(await flujo(d,DecompressionStream)))}
+/* ---------- datos del corte ---------- */
+function preparar(){
+ const c=actual();ALL={C:[],P:[]};BY={};if(!c)return;
+ for(const t of['C','P']){const n={};c[t].forEach(r=>{const k=r[3]+'|'+r[7];n[k]=(n[k]||0)+1});
+  ALL[t]=c[t].filter(r=>EJ.includes(r[6])).map(r=>({k:t+r[0],t,folio:r[0],fecha:dmy(r[1]),dias:r[2]??Math.max(0,dia(c.f)-dia(r[1])),cli:r[3],ref:r[4],suc:r[5],ej:r[6],imp:r[7],oc:r[8],dup:n[r[3]+'|'+r[7]]>1}));
+  ALL[t].forEach(r=>BY[r.k]=r)}
+}
+/* Compara dos cortes por folio. Solo juzga ejecutivos presentes en ambos y no da por cerrado lo anterior al periodo del archivo nuevo. */
+function comparar(a,b){
+ const idx=l=>new Map(l.map(r=>[r[0],r])),bc=idx(b.C),bp=idx(b.P),ac=idx(a.C),ap=idx(a.P);
+ const ejA=new Set([...a.C,...a.P].map(r=>r[6])),ejB=new Set([...b.C,...b.P].map(r=>r[6])),amb=new Set(EJ.filter(e=>ejA.has(e)&&ejB.has(e)));
+ const ini=[...b.C,...b.P].reduce((m,r)=>r[1]<m?r[1]:m,'9999');
+ const g={pre:[],sigue:[],psigue:[],salio:[],nueva:[],psalio:[],fuera:[]};
+ const add=(k,r,e)=>{if(amb.has(e))g[k].push({folio:r[0],fecha:r[1],cli:r[3],ref:r[4],ej:e,imp:r[7]})};
+ for(const[f,r]of ac){const n=bp.get(f)||bc.get(f),e=n&&amb.has(n[6])?n[6]:r[6];add(bp.has(f)?'pre':bc.has(f)?'sigue':r[1]<ini?'fuera':'salio',n||r,e)}
+ for(const[f,r]of ap){const n=bp.get(f);if(n)add('psigue',n,amb.has(n[6])?n[6]:r[6]);else if(!bc.has(f))add(r[1]<ini?'fuera':'psalio',r,r[6])}
+ for(const[f,r]of bc){if(!ac.has(f)&&!ap.has(f))add('nueva',r,r[6])}
+ return{g,amb,ini};
+}
+
+const money=n=>'$'+Math.round(n).toLocaleString('es-MX');
+const money2=n=>'$'+n.toLocaleString('es-MX',{minimumFractionDigits:2,maximumFractionDigits:2});
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const sum=a=>a.reduce((s,r)=>s+r.imp,0);
+const st=k=>S[k]||{log:[],estado:'Pendiente'};
+const has=(k,m)=>st(k).log.some(l=>!m||l.m===m);
+const ESTADOS=['Pendiente','En seguimiento','Ganada','Perdida'];
+const AGES={'':'Toda antigüedad','0':'0 a 3 días','1':'4 a 7 días','2':'8 a 15 días','3':'16 días o más'};
+const age=d=>d<=3?0:d<=7?1:d<=15?2:3;
+let tab='C',lim=40,F={q:'',age:'',seg:'',min:'0',suc:'',est:'',ord:'imp'};
+function lista(){
+ const base=mine(tab),sin=base.filter(r=>!has(r.k)),con=base.filter(r=>has(r.k)),pri=sin.filter(r=>r.imp>=20000),gan=base.filter(r=>st(r.k).estado==='Ganada');
+ const sucs=[...new Set(base.map(r=>r.suc))].sort();
+ const opt=(o,v)=>Object.entries(o).map(([k,l])=>`<option value="${esc(k)}" ${k===v?'selected':''}>${esc(l)}</option>`).join('');
+ const nom=tab==='C'?'cotizaciones':'prefacturas';
+ const e=ejSel.value,bar=e?`<div class="firma ${firma(e)?'':'falta'}"><b>${esc(quien(e))}</b><span class="note">${firma(e)?'Así firma: Quedo al pendiente. '+esc(firma(e))+' · LLYASA':'Sin nombre asignado; pídelo a tu coordinador.'}</span></div>`:'';
+ $('#view').innerHTML=`${bar}<div class="tiles">
+ <div class="tile"><span>Importe en ${nom}</span><b>${money(sum(base))}</b><em>${base.length} documentos</em></div>
+ <div class="tile"><span>Con seguimiento</span><b>${sum(base)?Math.round(sum(con)/sum(base)*100):0}%</b><em>${con.length} de ${base.length} · ${money(sum(con))}</em></div>
+ <button class="tile" id="goPri"><span>Prioridad: $20 mil o más sin seguimiento</span><b>${pri.length}</b><em>${money(sum(pri))} · clic para verlas</em></button>
+ <div class="tile"><span>Marcadas como ganadas</span><b>${money(sum(gan))}</b><em>${gan.length} documentos</em></div></div>
+ <div class="filters"><input id="q" type="search" placeholder="Buscar cliente, folio o referencia" value="${esc(F.q)}">
+ <select data-f="seg">${opt({'':'Todo seguimiento',sin:'Sin seguimiento',Correo:'Por correo',WhatsApp:'Por WhatsApp'},F.seg)}</select>
+ <select data-f="est">${opt({'':'Todos los estados',...Object.fromEntries(ESTADOS.map(e=>[e,e]))},F.est)}</select>
+ <select data-f="age">${opt(AGES,F.age)}</select>
+ <select data-f="min">${opt({'0':'Cualquier importe','20000':'$20 mil o más','50000':'$50 mil o más'},F.min)}</select>
+ <select data-f="suc">${opt(Object.fromEntries([['','Todas las sucursales'],...sucs.map(s=>[s,s])]),F.suc)}</select>
+ <select data-f="ord">${opt({imp:'Mayor importe primero',dias:'Más antiguas primero'},F.ord)}</select></div>
+ <div id="res"></div>`;
+ $('#q').oninput=e=>{F.q=e.target.value;lim=40;filas()};
+ document.querySelectorAll('[data-f]').forEach(s=>s.onchange=()=>{F[s.dataset.f]=s.value;lim=40;filas()});
+ $('#goPri').onclick=()=>{Object.assign(F,{q:'',age:'',suc:'',est:'',seg:'sin',min:'20000',ord:'imp'});lim=40;render()};
+ filas();
+}
+function filas(){
+ const q=F.q.trim().toLowerCase();
+ const r=mine(tab).filter(x=>(!q||(x.cli+' '+x.folio+' '+x.ref).toLowerCase().includes(q))&&(F.age===''||age(x.dias)==F.age)&&x.imp>=+F.min&&(!F.suc||x.suc===F.suc)&&(!F.est||st(x.k).estado===F.est)&&(!F.seg||(F.seg==='sin'?!has(x.k):has(x.k,F.seg))))
+  .sort((a,b)=>F.ord==='imp'?b.imp-a.imp:b.dias-a.dias||b.imp-a.imp);
+ const btn=(x,m)=>{const l=st(x.k).log.filter(l=>l.m===m),u=l[l.length-1];return `<button class="send ${u?'done':''}" data-send="${m}" data-k="${esc(x.k)}">${u?'☑':'☐'} ${m}${u?`<small>${u.f}${l.length>1?' · '+l.length+' veces':''}</small>`:''}</button>`};
+ $('#res').innerHTML=`<p class="note">${r.length} resultados · ${money(sum(r))}</p><div class="list"><div class="row head"><div>Cliente</div><div>Antigüedad</div><div class="num">Importe</div><div>Dar seguimiento</div><div>Estado</div></div>${r.slice(0,lim).map(x=>`<div class="row">
+ <div class="cli"><b title="${esc(x.cli)}">${esc(x.cli)}</b><small title="${esc(x.ref)}">${esc(x.folio)} · ${x.fecha} · ${esc(x.ref)}</small><small>${ejSel.value?'':esc(quien(x.ej))+' · '}${esc(x.suc)} · <a data-open="${esc(x.k)}" tabindex="0">Ver mensaje y contacto</a> ${x.imp>=20000?'<span class="pill pri">Prioridad</span>':''} ${x.dup?'<span class="pill dup" title="Mismo cliente e importe en otro folio">Posible duplicada</span>':''}</small></div>
+ <div><span class="pill a${age(x.dias)}">${x.dias} ${x.dias===1?'día':'días'}</span></div><div class="num"><b>${money2(x.imp)}</b></div>
+ <div class="acts">${btn(x,'Correo')}${btn(x,'WhatsApp')}</div>
+ <select data-est="${esc(x.k)}" aria-label="Estado">${ESTADOS.map(e=>`<option ${st(x.k).estado===e?'selected':''}>${e}</option>`).join('')}</select></div>`).join('')||'<div class="empty">No hay documentos con estos filtros.</div>'}</div>${r.length>lim?`<button class="more" id="more">Ver más (${r.length-lim} restantes)</button>`:''}`;
+ if($('#more'))$('#more').onclick=()=>{lim+=40;filas()};
+}
+const PL={C:{'Primer seguimiento':'Le escribo de LLYASA para dar seguimiento a la cotización {folio} del {fecha} ({ref}) por {imp}.\n\n¿Pudo revisarla? Con gusto le resuelvo cualquier duda o la ajusto a lo que necesite.',
+ 'Recordatorio':'Retomo la cotización {folio} ({ref}) por {imp}, enviada el {fecha}.\n\n¿Cómo va su decisión? Si me confirma, reviso existencia y programamos su pedido.',
+ 'Cierre':'Quiero ayudarle a cerrar la cotización {folio} ({ref}) por {imp}.\n\n¿Me confirma si procedemos, o qué nos falta para autorizarla?'},
+ P:{'Confirmar facturación':'Le escribo de LLYASA. Tenemos lista la prefactura {folio} ({ref}) por {imp}.\n\n¿Me confirma si procedemos a facturar?',
+ 'Solicitar orden de compra':'Para facturar la prefactura {folio} ({ref}) por {imp}, ¿me puede compartir la orden de compra o autorización?',
+ 'Coordinar entrega o servicio':'Sobre la prefactura {folio} ({ref}) por {imp}: ¿qué día le acomoda para la entrega o el servicio?'}};
+function msg(x,p){const c=C[x.cli]||{},names=Object.keys(PL[x.t]);p=p||(x.t==='C'&&has(x.k)?'Recordatorio':names[0]);
+ const body=PL[x.t][p].replace(/\{(\w+)\}/g,(_,v)=>({folio:x.folio,fecha:x.fecha,ref:x.ref,imp:money2(x.imp)})[v]);
+ return{p,sub:`LLYASA · ${x.t==='C'?'Cotización':'Prefactura'} ${x.folio} · ${x.cli}`,body:`Buen día${c.n?' '+c.n:''}.\n\n${body}\n\nQuedo al pendiente.\n${firma(x.ej)||'[Tu nombre]'}\nLLYASA`}}
+function send(k,m,text){
+ const x=BY[k],c=C[x.cli]||{},t=text||msg(x);let url;
+ if(!firma(x.ej)||t.body.includes('[Tu nombre]')){if(!firma(x.ej))toast(`${x.ej} no tiene nombre asignado. Pídelo a tu coordinador.`);else toast('Quita [Tu nombre] del mensaje antes de enviarlo.');return false}
+ if(m==='Correo')url=`mailto:${encodeURIComponent(c.e||'').replace(/%40/g,'@')}?subject=${encodeURIComponent(t.sub)}&body=${encodeURIComponent(t.body.replace(/\n/g,'\r\n'))}`;
+ else{let p=(c.t||'').replace(/\D/g,'');if(p.length===10)p='52'+p;url=`whatsapp://send?${p?'phone='+p+'&':''}text=${encodeURIComponent(t.body)}`}
+ const s=st(k);s.log.push({m,f:new Date().toLocaleString('es-MX',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}),ts:Date.now()});if(s.estado==='Pendiente')s.estado='En seguimiento';S[k]=s;store.set('seg',S);
+ const a=document.createElement('a');a.href=url;document.body.appendChild(a);a.click();a.remove();
+ toast(`${m} marcado. ${(m==='Correo'?c.e:c.t)?'':'Sin contacto guardado: elige el destinatario al abrirse.'}`);render();return true;
+}
+let cur=null;
+function openD(k,p){cur=k;const x=BY[k],c=C[x.cli]||{},t=msg(x,p),log=st(k).log;
+ $('#drawer').innerHTML=`<button class="x" id="cl" aria-label="Cerrar">✕</button><h2>${esc(x.cli)}</h2><div class="note">${x.t==='C'?'Cotización':'Prefactura'} ${esc(x.folio)} · ${money2(x.imp)} · ${esc(quien(x.ej))}${x.oc?' · OC '+esc(x.oc):''}</div>
+ <label>Contacto (se guarda para todos los folios de este cliente)<input id="cn" placeholder="Nombre de la persona" value="${esc(c.n||'')}"></label>
+ <div class="two"><label>Correo<input id="ce" type="email" value="${esc(c.e||'')}"></label><label>WhatsApp (10 dígitos)<input id="ct" inputmode="tel" value="${esc(c.t||'')}"></label></div>
+ ${firma(x.ej)?'':`<p class="note">${esc(x.ej)} no tiene nombre asignado.</p>`}
+ <label>Plantilla<select id="pl">${Object.keys(PL[x.t]).map(n=>`<option ${n===t.p?'selected':''}>${n}</option>`).join('')}</select></label>
+ <label>Mensaje (puedes editarlo)<textarea id="tx">${esc(t.body)}</textarea></label>
+ <div class="acts" style="margin-top:12px"><button class="send" data-d="Correo">Abrir correo</button><button class="send" data-d="WhatsApp">Abrir WhatsApp</button><button class="send" id="cp">Copiar texto</button></div>
+ <h3 style="font-size:13px">Historial</h3>${log.length?`<ul class="hist">${log.map(l=>`<li>${l.f} · ${l.m}${l.demo?' (ejemplo)':''}</li>`).join('')}</ul><button id="undo">Quitar el último check</button>`:'<p class="note">Todavía sin seguimiento.</p>'}`;
+ $('#veil').style.display=$('#drawer').style.display='block';
+ const save=()=>{C[x.cli]={n:$('#cn').value.trim(),e:$('#ce').value.trim(),t:$('#ct').value.trim()};store.set('con',C)};
+ $('#cn').onchange=()=>{save();$('#tx').value=msg(x,$('#pl').value).body};['ce','ct'].forEach(i=>$('#'+i).onchange=save);
+ $('#pl').onchange=()=>$('#tx').value=msg(x,$('#pl').value).body;
+ document.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>{save();if(!send(k,b.dataset.d,{sub:t.sub,body:$('#tx').value}))return;const keep=$('#tx').value;openD(k,$('#pl').value);$('#tx').value=keep});
+ $('#cp').onclick=()=>{const a=$('#tx');a.select();let ok=false;try{ok=document.execCommand('copy')}catch(e){}toast(ok?'Texto copiado (copiar no marca el check).':'Selecciona el texto y cópialo.')};
+ $('#cl').onclick=close;
+ if($('#undo'))$('#undo').onclick=()=>{const s=st(k);s.log.pop();if(!s.log.length&&s.estado==='En seguimiento')s.estado='Pendiente';S[k]=s;store.set('seg',S);render();openD(k)};
+}
+function close(){$('#veil').style.display=$('#drawer').style.display='none';cur=null}
+$('#veil').onclick=close;document.addEventListener('keydown',e=>{if(e.key==='Escape')close();if(e.key==='Enter'&&e.target.dataset.open)openD(e.target.dataset.open)});
+function coord(){
+ const cell=a=>{const w=a.filter(r=>has(r.k)),p=sum(a)?Math.round(sum(w)/sum(a)*100):0;return `<td>${a.length}</td><td>${money(sum(a))}</td><td><span class="meter"><i style="width:${p}%"></i></span>${p}%</td>`};
+ const cnt=(a,m)=>a.filter(r=>has(r.k,m)).length;
+ const rows=EJ.map(e=>({e,c:ALL.C.filter(r=>r.ej===e),p:ALL.P.filter(r=>r.ej===e)})).sort((a,b)=>sum(b.c)-sum(a.c));
+ const line=(n,c,p,e)=>{const b=[...c,...p],g=b.filter(r=>st(r.k).estado==='Ganada');return `<tr ${e?`class="click" data-ej="${e}" tabindex="0"`:'style="font-weight:700"'}><td ${e?`data-nom="${e}"`:''}>${e?esc(quien(e)):n}</td>${cell(c)}${cell(p)}<td>${cnt(b,'Correo')}</td><td>${cnt(b,'WhatsApp')}</td><td>${money(sum(g))}</td></tr>`};
+ const log=Object.entries(S).flatMap(([k,s])=>BY[k]?s.log.map(l=>({...l,x:BY[k]})):[]).sort((a,b)=>b.ts-a.ts);
+ $('#view').innerHTML=`<div class="filters"><span style="margin-right:auto"><b>Nombres del equipo</b> <span class="note">· se asocian al código en el selector, las tablas y la firma</span></span></div>
+ <div class="firmas">${EJ.map(e=>`<label>${e}<input data-firma="${e}" placeholder="Nombre" value="${esc(firma(e))}"></label>`).join('')}</div>
+ <div class="aviso">Aquí solo aparecen los seguimientos hechos en <b>este equipo</b>. Para ver los de todos falta conectar el registro compartido.</div><p class="note">Avance de todo el equipo. El porcentaje es del importe con al menos un seguimiento. Clic en un ejecutivo para ver su cartera.</p>
+ <div class="scroll"><table><thead><tr><th rowspan="2">Ejecutivo</th><th colspan="3" style="text-align:center">Cotizaciones</th><th colspan="3" style="text-align:center">Prefacturas</th><th colspan="2" style="text-align:center">Documentos seguidos por</th><th rowspan="2">Ganado</th></tr><tr><th>Núm.</th><th>Importe</th><th>Seguimiento</th><th>Núm.</th><th>Importe</th><th>Seguimiento</th><th>Correo</th><th>WhatsApp</th></tr></thead>
+ <tbody>${rows.map(r=>line(r.e,r.c,r.p,r.e)).join('')}${line('Total equipo',ALL.C,ALL.P)}</tbody></table></div>
+ <div class="filters"><b style="margin-right:auto">Bitácora de seguimientos (${log.length})</b><button id="wipe">Borrar checks</button></div>
+ <div class="scroll"><table><thead><tr><th>Fecha</th><th>Ejecutivo</th><th>Documento</th><th style="text-align:left">Cliente</th><th>Medio</th></tr></thead><tbody>${log.slice(0,60).map(l=>`<tr><td>${l.f}${l.demo?' · ejemplo':''}</td><td data-nom="${l.x.ej}">${esc(quien(l.x.ej))}</td><td>${l.x.t==='C'?'Cotización':'Prefactura'} ${esc(l.x.folio)}</td><td style="text-align:left">${esc(l.x.cli)}</td><td>${l.m}</td></tr>`).join('')||'<tr><td colspan="5">Aún no hay seguimientos registrados.</td></tr>'}</tbody></table></div>`;
+ let armed=false;$('#wipe').onclick=e=>{if(!armed){armed=true;e.target.textContent='Clic otra vez para borrar';return}S={};store.set('seg',S);render()};
+}
+
+const ejSel=$('#ej');
+function opciones(){const v=ejSel.value||store.get('ej','');ejSel.innerHTML='<option value="">Todo el equipo</option>'+EJ.map(e=>`<option value="${e}">${esc(quien(e))}</option>`).join('');ejSel.value=v}
+ejSel.onchange=()=>{store.set('ej',ejSel.value);F.suc='';lim=40;render()};
+const mine=t=>ALL[t].filter(r=>!ejSel.value||r.ej===ejSel.value);
+function toast(m){const t=$('#toast');t.textContent=m;t.style.display='block';clearTimeout(t._h);t._h=setTimeout(()=>t.style.display='none',4500)}
+function render(){
+ const c=actual();
+ const tabs=c?[['C',`Cotizaciones (${mine('C').length})`],['P',`Prefacturas (${mine('P').length})`],['K','Comparativo']]:[];
+ if(admin){if(c)tabs.push(['A','Coordinación']);tabs.push(['U','Actualizar'])}
+ if(!tabs.some(t=>t[0]===tab))tab=tabs[0]?.[0]||'';
+ $('#tabs').innerHTML='<a class="tab" href="index.html">Venta diaria</a>'+tabs.map(([k,l])=>`<button class="tab" data-tab="${k}" aria-selected="${tab===k}">${l}</button>`).join('');
+ $('#sub').textContent=c?`Corte al ${largo(c.f)} · ${DB.cortes.length} ${DB.cortes.length===1?'corte guardado':'cortes guardados'}${dirty?' · cambios sin publicar':''}`:'Sin cortes publicados';
+ $('#bar').hidden=!c||tab==='U';
+ if(!tab){$('#view').innerHTML='<div class="card"><h2>Todavía no hay cotizaciones publicadas</h2><p class="note">Tu coordinador publicará el primer corte.</p></div>';return}
+ ({C:lista,P:lista,K:comparativo,A:coord,U:actualizar})[tab]();
+}
+const GR={pre:['Pasaron a prefactura','Avanzaron en la venta'],sigue:['Siguen cotizadas','Pendientes de cerrar'],psigue:['Siguen en prefactura','Pendientes de facturar'],salio:['Cotizaciones que ya no aparecen','Confirmar: facturada o cancelada'],psalio:['Prefacturas que ya no aparecen','Confirmar: facturada o cancelada'],nueva:['Cotizaciones nuevas','Entraron en este corte']};
+function comparativo(){
+ const b=actual(),prev=DB.cortes.slice(0,-1);
+ if(!prev.length){$('#view').innerHTML='<div class="card"><h2>El comparativo aparece con el segundo corte</h2><p class="note">Cuando se publique el siguiente archivo semanal verás qué avanzó, qué sigue pendiente y qué es nuevo.</p></div>';return}
+ const a=prev.find(c=>c.f===prevF)||prev[prev.length-1],{g,amb,ini}=comparar(a,b),e=ejSel.value,f=l=>l.filter(r=>!e||r.ej===e);
+ const lista=f(g[grupo]).sort((x,y)=>y.imp-x.imp),solo=amb.size<EJ.length;
+ const ejs=[...amb].filter(x=>!e||x===e).map(x=>({x,v:Object.fromEntries(Object.keys(GR).map(k=>[k,g[k].filter(r=>r.ej===x)]))})).sort((p,q)=>sum(q.v.pre)-sum(p.v.pre));
+ $('#view').innerHTML=`<div class="filters"><label>Comparar el corte del ${largo(b.f)} contra <select id="prev">${prev.map(c=>`<option value="${c.f}" ${c===a?'selected':''}>${largo(c.f)}</option>`).join('')}</select></label></div>
+ ${solo?`<div class="aviso">El corte del ${largo(a.f)} solo trae ${amb.size} de los ${EJ.length} ejecutivos; se comparan únicamente ellos: ${[...amb].map(x=>esc(quien(x))).join(', ')}.</div>`:''}
+ ${e&&!amb.has(e)?`<div class="aviso">${esc(quien(e))} no está en ambos cortes. Elige otro ejecutivo o todo el equipo.</div>`:''}
+ <div class="tiles" style="grid-template-columns:repeat(auto-fit,minmax(190px,1fr))">${Object.entries(GR).map(([k,[t,d]])=>`<button class="tile ${grupo===k?'on':''}" data-grupo="${k}"><span>${t}</span><b>${f(g[k]).length}</b><em>${money(sum(f(g[k])))} · ${d}</em></button>`).join('')}</div>
+ ${f(g.fuera).length?`<p class="note">${f(g.fuera).length} documentos (${money(sum(f(g.fuera)))}) tienen fecha anterior al ${largo(ini)}, inicio del archivo nuevo. No se cuentan como cerrados porque quedaron fuera del filtro.</p>`:''}
+ <div class="scroll"><table><thead><tr><th>Ejecutivo</th>${Object.values(GR).map(v=>`<th>${v[0].replace('Cotizaciones que ya no aparecen','Cot. que salieron').replace('Prefacturas que ya no aparecen','Pref. que salieron')}</th>`).join('')}</tr></thead><tbody>${ejs.map(({x,v})=>`<tr><td>${esc(quien(x))}</td>${Object.keys(GR).map(k=>`<td>${v[k].length} · ${money(sum(v[k]))}</td>`).join('')}</tr>`).join('')}</tbody></table></div>
+ <p><b>${GR[grupo][0]}</b> <span class="note">· ${lista.length} documentos, mayores primero</span></p>
+ <div class="scroll"><table><thead><tr><th>Cliente</th><th>Folio</th><th>Fecha</th><th>Ejecutivo</th><th>Importe</th></tr></thead><tbody>${lista.slice(0,100).map(r=>`<tr><td style="white-space:normal">${esc(r.cli)}<div class="note">${esc(r.ref)}</div></td><td>${esc(r.folio)}</td><td>${dmy(r.fecha)}</td><td>${esc(quien(r.ej))}</td><td>${money2(r.imp)}</td></tr>`).join('')||'<tr><td colspan="5">Sin documentos en este grupo.</td></tr>'}</tbody></table></div>${lista.length>100?'<p class="note">Se muestran los 100 mayores.</p>':''}`;
+ $('#prev').onchange=v=>{prevF=v.target.value;comparativo()};
+}
+function ghCfg(){try{const c=JSON.parse(localStorage.getItem('llyasa_venta_diaria_gh')||'null');return c&&c.o&&c.r&&c.t?c:null}catch(e){return null}}
+let msgU='';
+function actualizar(){
+ const g=ghCfg(),c=actual();
+ $('#view').innerHTML=`<div class="card"><h2>1. Carga el Excel de la semana</h2><p class="note">Puedes elegir varios. La fecha del corte se toma del nombre ("al 26 Nov") o de la fecha más reciente. Se conservan los últimos 8 cortes.</p><input type="file" id="xl" accept=".xlsx" multiple>
+ ${DB.cortes.length?`<ul class="hist">${DB.cortes.map(c=>`<li>${largo(c.f)} · ${c.C.filter(r=>EJ.includes(r[6])).length} cotizaciones y ${c.P.filter(r=>EJ.includes(r[6])).length} prefacturas del equipo · ${esc(c.archivo)} <button data-quitar="${c.f}">Quitar</button></li>`).join('')}</ul>`:''}</div>
+ <div class="card"><h2>2. Nombres del equipo</h2><p class="note">${EJ.filter(firma).length} de ${EJ.length} asignados. Carga el archivo de nombres la primera vez; después se corrigen en Coordinación.</p><input type="file" id="nom" accept=".json"></div>
+ <div class="card"><h2>3. Publica</h2><p class="note">Los datos se guardan cifrados. Los ejecutivos entran con esta clave: usa al menos 12 caracteres.</p>
+ <p><input type="password" id="pw1" placeholder="Clave de acceso" value="${esc(PW)}" autocomplete="new-password"> <input type="password" id="pw2" placeholder="Repite la clave" value="${esc(PW)}" autocomplete="new-password"></p>
+ <button class="btn" id="pub" ${c&&g?'':'disabled'}>Publicar en GitHub</button> <button id="baj" ${c?'':'disabled'}>Descargar ${ARCH}</button>
+ <p class="note">${g?`Se publicará en ${esc(g.o)}/${esc(g.r)} con el acceso que ya configuraste en Venta diaria.`:'Para publicar con un clic, configura GitHub en Venta diaria (Configuración) en este navegador. También puedes descargar el archivo y subirlo.'}</p><p><b>${esc(msgU)}</b></p></div>`;
+ $('#xl').onchange=async ev=>{const ok=[],mal=[];for(const f of ev.target.files){try{const c=await leerExcel(await f.arrayBuffer(),f.name);agregarCorte(c);ok.push(largo(c.f))}catch(e){mal.push(`${f.name}: ${e.message}`)}}
+  msgU=(ok.length?`Cortes cargados: ${ok.join(', ')}. Revisa y publica. `:'')+(mal.length?`No se pudo leer ${mal.join('; ')}`:'');opciones();render()};
+ $('#nom').onchange=async ev=>{try{const n=JSON.parse(await ev.target.files[0].text());EJ.forEach(e=>{if(typeof n[e]==='string')DB.names[e]=n[e]});dirty=true;msgU='Nombres cargados.'}catch(e){msgU='Ese archivo de nombres no se pudo leer.'}opciones();render()};
+ const clave=()=>{const a=$('#pw1').value;if(a.length<12){toast('La clave debe tener al menos 12 caracteres.');return null}if(a!==$('#pw2').value){toast('Las claves no coinciden.');return null}return a};
+ $('#baj').onclick=async()=>{const k=clave();if(!k)return;const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([await cifrar(k)],{type:'application/json'}));a.download=ARCH;document.body.appendChild(a);a.click();a.remove();PW=k;msgU=`Archivo descargado. Súbelo al repositorio junto a la página.`;render()};
+ $('#pub').onclick=async()=>{const k=clave();if(!k)return;$('#pub').disabled=true;
+  try{const url=`https://api.github.com/repos/${g.o}/${g.r}/contents/${ARCH}`,H={Authorization:'Bearer '+g.t,Accept:'application/vnd.github+json'},br=g.b||'main';
+   const q=await fetch(url+'?ref='+encodeURIComponent(br),{headers:H,cache:'no-store'});if(!q.ok&&q.status!==404)throw new Error(q.status);
+   const sha=q.ok?(await q.json()).sha:undefined,txt=await cifrar(k);
+   const r=await fetch(url,{method:'PUT',headers:H,body:JSON.stringify({message:'Cotizaciones corte '+actual().f,content:b64(new TextEncoder().encode(txt)),sha,branch:br})});if(!r.ok)throw new Error(r.status);
+   PW=k;store.set('pw',k);dirty=false;existe=true;msgU='Publicado. GitHub tarda uno o dos minutos en mostrarlo.'}catch(e){msgU=`No se pudo publicar (${e.message}). Revisa el acceso en Venta diaria o descarga el archivo.`}render()};
+}
+const taps=[];
+document.addEventListener('click',e=>{
+ if(e.target.closest('h1')&&!bloqueado){const n=Date.now();taps.push(n);while(taps.length&&n-taps[0]>1500)taps.shift();
+  if(taps.length>=3){taps.length=0;admin=!admin;if(admin&&!actual())tab='U';render();toast(admin?'Modo coordinación activado':'Modo coordinación oculto');return}}
+ const el=e.target.closest('[data-tab],[data-send],[data-open],[data-ej],[data-grupo],[data-quitar]');if(!el)return;const d=el.dataset;
+ if(d.tab){tab=d.tab;lim=40;F.suc='';render()}else if(d.send)send(d.k,d.send);else if(d.open)openD(d.open);else if(d.grupo){grupo=d.grupo;comparativo()}
+ else if(d.quitar){DB.cortes=DB.cortes.filter(c=>c.f!==d.quitar);dirty=true;preparar();render()}
+ else if(d.ej){ejSel.value=d.ej;store.set('ej',d.ej);tab='C';F.suc='';render();scrollTo(0,0)}});
+document.addEventListener('input',e=>{const f=e.target.dataset.firma;if(f){DB.names[f]=e.target.value;dirty=true;opciones();document.querySelectorAll(`[data-nom="${f}"]`).forEach(n=>n.textContent=quien(f))}});
+document.addEventListener('change',e=>{const k=e.target.dataset.est;if(!k)return;const s=st(k);s.estado=e.target.value;S[k]=s;store.set('seg',S);render()});
+window.addEventListener('beforeunload',e=>{if(dirty&&!window.__PREVIEW__)e.preventDefault()});
+let bloqueado=false;
+function listo(){bloqueado=false;preparar();opciones();render()}
+async function boot(){
+ if(window.__PREVIEW__){DB=window.__PREVIEW__;return listo()}
+ let j=null;
+ try{const r=await fetch(ARCH+'?t='+Date.now(),{cache:'no-store'});if(r.ok)j=await r.json();else if(r.status!==404)throw 0}catch(e){bloqueado=true;$('#bar').hidden=true;$('#view').innerHTML='<div class="card"><h2>No se pudieron cargar las cotizaciones</h2><p class="note">Abre esta página desde la liga publicada y vuelve a intentar.</p></div>';return}
+ if(!j)return listo();existe=true;
+ const abrir=async k=>{DB=await descifrar(j,k);PW=k;store.set('pw',k);listo()};
+ const g=store.get('pw','');if(g){try{return await abrir(g)}catch(e){}}
+ bloqueado=true;$('#bar').hidden=true;
+ $('#view').innerHTML='<form class="card" id="gate"><h2>Acceso del equipo</h2><p class="note">Escribe la clave que te dio tu coordinador. Se recordará en este equipo.</p><input type="password" id="pw" aria-label="Clave" required> <button class="btn">Entrar</button><p id="err" class="note"></p></form>';
+ $('#gate').onsubmit=async e=>{e.preventDefault();$('#err').textContent='Abriendo…';try{await abrir($('#pw').value)}catch(x){$('#err').textContent='Clave incorrecta.'}};
+}
+boot();
+
+</script></body></html>
