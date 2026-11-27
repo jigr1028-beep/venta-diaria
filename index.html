@@ -460,7 +460,7 @@ function head(){
   $('#segctl').innerHTML=[['all','Todos',null],...SEGS.map(s=>[s.id,s.name,s.c])].map(([id,n,c])=>
     `<button data-seg="${id}" aria-pressed="${st.seg===id}">${c?`<span class="dot" style="background:${c}"></span>`:''}${n}</button>`).join('');
   $('#tabs').innerHTML=[['tablero','Tablero'],...(st.admin?[['desemp','Desempeño'],['captura','Captura del día'],['historial','Historial'],['config','Configuración']]:[])].map(([id,n])=>
-    `<button class="tab" role="tab" data-tab="${id}" aria-selected="${st.tab===id}">${n}</button>`).join('');
+    `<button class="tab" role="tab" data-tab="${id}" aria-selected="${st.tab===id}">${n}</button>`).join('')+'<a class="tab" href="cotizaciones.html" style="text-decoration:none">Cotizaciones</a>';
 }
 
 /* ---------- Tablero ---------- */
